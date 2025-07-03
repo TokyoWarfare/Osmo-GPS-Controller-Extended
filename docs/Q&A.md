@@ -49,7 +49,7 @@ The logic is as follows: if bytes 0, 1, and 4 of the manufacturer field are 0xAA
 
 For implementation details, see the `bsp_link_is_dji_camera_adv` function in the `ble.c` file.
 
-## 5. Inaccurate Simulated GPS Data Push?
+## 5. Simulated GPS command frame push but dashboard data appears abnormal?
 
 It is not recommended to use simulated data to construct the **GPS Data Push (0017)** command frame as described in the [DATA Segment Documentation](./protocol_data_segment.md). Since the dashboard functionality relies on this data, using non-authentic data may result in abnormal display issues within the app.
 
