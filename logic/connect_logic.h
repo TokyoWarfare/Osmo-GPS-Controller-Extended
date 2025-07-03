@@ -42,4 +42,6 @@ int connect_logic_protocol_connect(uint32_t device_id, uint8_t mac_addr_len, con
                                     uint32_t fw_version, uint8_t verify_mode, uint16_t verify_data,
                                     uint8_t camera_reserved);
 
+int connect_logic_ble_wakeup(void);
+
 #endif

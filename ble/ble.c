@@ -27,6 +27,7 @@
 #include "esp_gattc_api.h"
 #include "esp_bt_main.h"
 #include "esp_gatt_common_api.h"
+#include "esp_timer.h"
 
 #define TAG "BLE"
 
@@ -59,6 +60,8 @@ static bool s_found_previous_device = false;  // Whether the original device was
 ble_profile_t s_ble_profile = {
     .conn_id = 0,
     .gattc_if = ESP_GATT_IF_NONE,
+    .remote_bda = {0x60, 0x60, 0x1F, 0x60, 0x11, 0xE7},  // Temporarily store the MAC address of the last connected device; you can initialize it with a test value for debugging purposes.
+                                                         // 此处暂存上次连接设备的 MAC 地址，可以初始化一个值进行测试
     .notify_char_handle = 0,
     .write_char_handle = 0,
     .read_char_handle = 0,
@@ -120,10 +123,10 @@ void scan_stop_timer_callback(TimerHandle_t xTimer) {
 }
 
 static void trigger_scan_task(void) {
-    esp_ble_gap_start_scanning(10);
-    // Start a timer to stop scanning after 3 seconds
-    // 启动定时器，在3秒后停止扫描
-    scan_timer = xTimerCreate("scan_timer", pdMS_TO_TICKS(3000), pdFALSE, (void *)0, scan_stop_timer_callback);
+    esp_ble_gap_start_scanning(4);
+    // Start a timer to stop scanning after 4 seconds
+    // 启动定时器，在4秒后停止扫描
+    scan_timer = xTimerCreate("scan_timer", pdMS_TO_TICKS(4000), pdFALSE, (void *)0, scan_stop_timer_callback);
     if (scan_timer != NULL) {
         xTimerStart(scan_timer, 0);
     }
@@ -560,17 +563,13 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     case ESP_GAP_BLE_SCAN_RESULT_EVT: {
         esp_ble_gap_cb_param_t *r = param;
         if (r->scan_rst.search_evt == ESP_GAP_SEARCH_INQ_RES_EVT) {
-            // Print the name and signal strength of the found device
-            // 打印搜索到的设备名称和信号强度
-            // ESP_LOGI(TAG, "Found device: %s with RSSI: %d", adv_name, r->scan_rst.rssi);
-
-            /* Check if it is a DJI camera advertisement */
-            /* 检查是否为 DJI 相机广播 */
+            // Check if it is a DJI camera advertisement
+            // 检查是否为 DJI 相机广播
             if (!bsp_link_is_dji_camera_adv(r)) {
                 break;
             }
-            /* Get the complete name from the advertisement/response data */
-            /* 获取广播/响应数据里的完整名称 */
+            // Get the complete name from the advertisement data
+            // 获取广播数据里的完整名称
             uint8_t *adv_name = NULL;
             uint8_t adv_name_len = 0;
             adv_name = esp_ble_resolve_adv_data_by_type(r->scan_rst.ble_adv,
@@ -578,25 +577,42 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                                 ESP_BLE_AD_TYPE_NAME_CMPL,
                                 &adv_name_len);
 
-            /* Compare names and record signal strength */
-            /* 对比名称并记录信号强度 */
+            // Prepare a safe string pointer for logging
+            // 为打印日志准备安全的字符串指针
+            const char *adv_name_str = NULL;
             if (adv_name && adv_name_len > 0) {
-                if (s_is_reconnecting) {
-                    // In reconnection mode, compare device addresses
-                    // 在重连模式下，比对设备地址
-                    if (memcmp(best_addr, r->scan_rst.bda, sizeof(esp_bd_addr_t)) == 0) {
-                        s_found_previous_device = true;
-                        ESP_LOGI(TAG, "Found previous device: %s, RSSI: %d", adv_name, r->scan_rst.rssi);
-                    }
-                } else {
-                    // In normal scan mode, record the device with the strongest signal
-                    // 正常扫描模式，记录信号最强的设备
-                    if (r->scan_rst.rssi > best_rssi && r->scan_rst.rssi >= MIN_RSSI_THRESHOLD) {
-                        best_rssi = r->scan_rst.rssi;
-                        memcpy(best_addr, r->scan_rst.bda, sizeof(esp_bd_addr_t));
-                        strncpy(s_remote_device_name, (char *)adv_name, sizeof(s_remote_device_name) - 1);
-                        s_remote_device_name[sizeof(s_remote_device_name) - 1] = '\0';
-                    }
+                static char name_buf[64];
+                size_t copy_len = adv_name_len < sizeof(name_buf) - 1 ? adv_name_len : sizeof(name_buf) - 1;
+                memcpy(name_buf, adv_name, copy_len);
+                name_buf[copy_len] = '\0';
+                adv_name_str = name_buf;
+            } else {
+                adv_name_str = "NULL";
+            }
+
+            ESP_LOGI(TAG, "Found device: %s with RSSI: %d, MAC: %02X:%02X:%02X:%02X:%02X:%02X",
+                adv_name_str,
+                r->scan_rst.rssi,
+                r->scan_rst.bda[0], r->scan_rst.bda[1], r->scan_rst.bda[2],
+                r->scan_rst.bda[3], r->scan_rst.bda[4], r->scan_rst.bda[5]);
+
+            // Compare names and record signal strength
+            // 对比名称并记录信号强度
+            if (s_is_reconnecting) {
+                // In reconnection mode, compare device addresses
+                // 在重连模式下，比对设备地址
+                if (memcmp(best_addr, r->scan_rst.bda, sizeof(esp_bd_addr_t)) == 0) {
+                    s_found_previous_device = true;
+                    ESP_LOGI(TAG, "Found previous device: %s, RSSI: %d", adv_name_str, r->scan_rst.rssi);
+                }
+            } else {
+                // In normal scan mode, record the device with the strongest signal
+                // 正常扫描模式，记录信号最强的设备
+                if (r->scan_rst.rssi > best_rssi && r->scan_rst.rssi >= MIN_RSSI_THRESHOLD) {
+                    best_rssi = r->scan_rst.rssi;
+                    memcpy(best_addr, r->scan_rst.bda, sizeof(esp_bd_addr_t));
+                    strncpy(s_remote_device_name, adv_name_str, sizeof(s_remote_device_name) - 1);
+                    s_remote_device_name[sizeof(s_remote_device_name) - 1] = '\0';
                 }
             }
         }
@@ -629,6 +645,14 @@ static void gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_
         s_ble_profile.connection_status.is_connected = true;
         memcpy(s_ble_profile.remote_bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
         ESP_LOGI(TAG, "Connected, conn_id=%d", s_ble_profile.conn_id);
+
+        ESP_LOGI(TAG, "Camera MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
+            param->connect.remote_bda[0],
+            param->connect.remote_bda[1],
+            param->connect.remote_bda[2],
+            param->connect.remote_bda[3],
+            param->connect.remote_bda[4],
+            param->connect.remote_bda[5]);
 
         // Initiate MTU request
         // 发起 MTU 请求
@@ -775,4 +799,66 @@ static void gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_
     default:
         break;
     }
+}
+
+// BLE Advertising Data Format
+// 广播数据
+static uint8_t adv_data[] = {
+    0x02, 0x01, 0x00,
+    10, 0xff, 
+    'W','K','P','1','2','3','4','5','6',
+    5, 0x12, 0x0c, 0x00, 0x14, 0x00, 0x00, 0x00
+};
+
+static esp_timer_handle_t adv_timer;
+
+static void stop_adv_after_2s(void* arg) {
+    esp_ble_gap_stop_advertising();
+    ESP_LOGI(TAG, "Advertising stopped after 2 seconds");
+}
+
+esp_err_t ble_start_advertising() {
+    // Check if remote_bda is initialized
+    // 检查remote_bda是否已初始化
+    if (memcmp(s_ble_profile.remote_bda, "\x00\x00\x00\x00\x00\x00", 6) == 0) {
+        ESP_LOGE(TAG, "错误：remote_bda未初始化！");
+        ESP_LOGE(TAG, "Error: remote_bda not initialized!");
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    for (int i = 0; i < 6; i++) {
+        adv_data[8 + i] = s_ble_profile.remote_bda[5 - i];
+    }
+
+    ESP_LOGI(TAG, "Modified Advertising Data (with MAC):");
+    ESP_LOG_BUFFER_HEX(TAG, adv_data, sizeof(adv_data));
+
+    esp_ble_adv_params_t adv_params = {
+        .adv_int_min = 0x100,
+        .adv_int_max = 0x200,
+        .adv_type = ADV_TYPE_IND,
+        .channel_map = ADV_CHNL_ALL,
+    };
+
+    esp_err_t ret = esp_ble_gap_config_adv_data_raw(adv_data, sizeof(adv_data));
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set adv data.");
+        return ret;
+    }
+
+    ret = esp_ble_gap_start_advertising(&adv_params);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start advertising: %s", esp_err_to_name(ret));
+        return ret;
+    }
+
+    const esp_timer_create_args_t timer_args = {
+        .callback = &stop_adv_after_2s,
+        .name = "adv_timer"
+    };
+    esp_timer_create(&timer_args, &adv_timer);
+    esp_timer_start_once(adv_timer, 2000000);  // 2000ms = 2,000,000us
+
+    ESP_LOGI(TAG, "Advertising started (will auto-stop after 2s)");
+    return ESP_OK;
 }

@@ -163,11 +163,11 @@ int connect_logic_ble_connect() {
         return -1;
     }
 
-    /* 3. Wait up to 5 seconds to ensure BLE connection success */
-    /* 等待最多 5 秒以确保 BLE 连接成功 */
-    ESP_LOGI(TAG, "Waiting up to 5s for BLE to connect...");
+    /* 3. Wait up to 6 seconds to ensure BLE connection success */
+    /* 等待最多 6 秒以确保 BLE 连接成功 */
+    ESP_LOGI(TAG, "Waiting up to 6s for BLE to connect...");
     bool connected = false;
-    for (int i = 0; i < 50; i++) { // 50 * 100ms = 5s
+    for (int i = 0; i < 60; i++) { // 60 * 100ms = 6s
         if (s_ble_profile.connection_status.is_connected) {
             ESP_LOGI(TAG, "BLE connected successfully");
             connected = true;
@@ -402,4 +402,17 @@ wait_for_camera_command:
         connect_logic_ble_disconnect();
         return -1;
     }
+}
+
+int connect_logic_ble_wakeup(void) {
+    ESP_LOGI(TAG, "Attempting to wake up camera via BLE advertising");
+
+    esp_err_t ret = ble_start_advertising();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start BLE advertising: %s", esp_err_to_name(ret));
+        return -1;
+    }
+
+    ESP_LOGI(TAG, "BLE advertising started, attempting to wake up camera");
+    return 0;
 }

@@ -177,6 +177,9 @@ static void handle_boot_single_press() {
             free(start_record_response);
         } else {
             ESP_LOGE(TAG, "Failed to start recording.");
+            // 尝试唤醒
+            // Try to wake up
+            connect_logic_ble_wakeup();
         }
     } else if (is_camera_recording()) {
         // 如果当前模式是拍照或录制中，停止录制
@@ -191,6 +194,9 @@ static void handle_boot_single_press() {
         }
     } else {
         ESP_LOGI(TAG, "Camera is in an unsupported mode for recording.");
+        // 尝试唤醒
+        // Try to wake up
+        connect_logic_ble_wakeup();
     }
 
     /* QS 快速切换模式（可放入其他按键） */

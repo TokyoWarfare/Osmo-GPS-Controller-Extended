@@ -102,4 +102,6 @@ void ble_set_notify_callback(ble_notify_callback_t cb);
 
 void ble_set_state_callback(connect_logic_state_callback_t cb);
 
+esp_err_t ble_start_advertising(void);
+
 #endif

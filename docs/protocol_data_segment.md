@@ -250,3 +250,21 @@ CmdSet = 0x00, CmdID = 0x1A
 | Frame Type     | Offset | Size | Name     | Type    | Description                  |
 | -------------- | ------ | ---- | -------- | ------- | ---------------------------- |
 | Response Frame | 0      | 1    | ret_code | uint8_t | Refer to common return codes |
+
+**How to wake up the camera after it enters sleep mode?**
+ (The sleep mode here includes putting the camera to sleep by long-pressing the power button or using the Bluetooth remote control.)
+
+We need to broadcast a specific data packet. Refer to the following sample code:
+
+```c
+// BLE Advertising Data Format
+static uint8_t adv_data[] = {
+    0x02, 0x01, 0x00,
+    10, 0xff, 
+    'W','K','P','1','2','3','4','5','6',
+    5, 0x12, 0x0c, 0x00, 0x14, 0x00, 0x00, 0x00
+};
+```
+
+The fields '1' to '6' represent the MAC address of the target camera device and should be written in reverse order. For detailed implementation, refer to the `ble_start_advertising` function in `ble.c`.
+
