@@ -93,7 +93,7 @@ static void handle_boot_long_press() {
     }
 
     ESP_LOGI(TAG, "Attempting to connect Bluetooth...");
-    int res = connect_logic_ble_connect();
+    int res = connect_logic_ble_connect(false);
     if (res == -1) {
         ESP_LOGE(TAG, "Failed to connect Bluetooth.");
         return;

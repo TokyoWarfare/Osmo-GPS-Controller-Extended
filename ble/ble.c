@@ -123,7 +123,11 @@ void scan_stop_timer_callback(TimerHandle_t xTimer) {
 }
 
 static void trigger_scan_task(void) {
-    esp_ble_gap_start_scanning(4);
+    ESP_LOGI(TAG, "esp_ble_gap_start_scanning...");
+    esp_err_t ret = esp_ble_gap_start_scanning(4);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start scanning: %s", esp_err_to_name(ret));
+    }
     // Start a timer to stop scanning after 4 seconds
     // 启动定时器，在4秒后停止扫描
     scan_timer = xTimerCreate("scan_timer", pdMS_TO_TICKS(4000), pdFALSE, (void *)0, scan_stop_timer_callback);
@@ -233,22 +237,28 @@ esp_err_t ble_init() {
  * @return esp_err_t
  */
 esp_err_t ble_start_scanning_and_connect(void) {
-    /* Reset scan-related variables */
-    /* 重置扫描相关变量 */
+    // TODO: Add reconnection logic; current implementation has issues and needs to be fixed.
+    // 补充重连逻辑，当前实现存在问题，待修复
+    if(ble_get_reconnecting()) {
+        return ble_reconnect();
+    }
+
+    // Reset scan-related variables
+    // 重置扫描相关变量
     memset(best_addr, 0, sizeof(esp_bd_addr_t));
     best_rssi = -128;
     memset(s_remote_device_name, 0, ESP_BLE_ADV_NAME_LEN_MAX);
     s_is_reconnecting = false;
     s_found_previous_device = false;
 
-    /* Set scan parameters */
-    /* 设置扫描参数 */
+    // Set scan parameters
+    // 设置扫描参数
     esp_err_t ret = esp_ble_gap_set_scan_params(&s_ble_scan_params);
     if (ret) {
-        ESP_LOGE(TAG, "set scan params error: %s", esp_err_to_name(ret));
+        ESP_LOGE(TAG, "Set scan params error: %s", esp_err_to_name(ret));
         return ret;
     }
-    ESP_LOGI(TAG, "Starting to scan...");
+    ESP_LOGI(TAG, "Set scan params ok!");
     return ESP_OK;
 }
 
@@ -276,7 +286,10 @@ static void try_to_connect(esp_bd_addr_t addr) {
     }
 
     s_connecting = true;
-    ESP_LOGI(TAG, "Try to connect target device name = %s", s_remote_device_name);
+    ESP_LOGI(TAG, "Try to connect target device name = %s, MAC: %02X:%02X:%02X:%02X:%02X:%02X",
+             s_remote_device_name,
+             addr[0], addr[1], addr[2],
+             addr[3], addr[4], addr[5]);
 
     // Do not call lightly, if you connect to a non-existent device address, you will have to wait a while before you can connect again
     // 不要轻易调用，如果连接不存在的设备地址会等待一段时间后才能再次连接
@@ -284,6 +297,14 @@ static void try_to_connect(esp_bd_addr_t addr) {
                        addr,
                        BLE_ADDR_TYPE_PUBLIC,
                        true);
+}
+
+void ble_set_reconnecting(bool flag) {
+    s_is_reconnecting = flag;
+}
+
+bool ble_get_reconnecting(void) {
+    return s_is_reconnecting;
 }
 
 /**
@@ -310,8 +331,11 @@ esp_err_t ble_reconnect(void) {
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "Attempting to reconnect to previous device: %s", s_remote_device_name);
-    
+    ESP_LOGI(TAG, "Attempting to reconnect to previous device: %s, MAC: %02X:%02X:%02X:%02X:%02X:%02X",
+             s_remote_device_name,
+             best_addr[0], best_addr[1], best_addr[2],
+             best_addr[3], best_addr[4], best_addr[5]);
+
     // Set reconnection mode flag
     // 设置重连模式标记
     s_is_reconnecting = true;
@@ -548,16 +572,17 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         // After scanning ends, decide whether to connect based on reconnection mode and device discovery status
         // 扫描结束后，根据重连模式和设备发现状态决定是否连接
         if (best_rssi > -128) {
-            if (!s_is_reconnecting || (s_is_reconnecting && s_found_previous_device)) {
-                ESP_LOGI(TAG, "Connecting to device: %02x:%02x:%02x:%02x:%02x:%02x",
-                         best_addr[0], best_addr[1], best_addr[2], best_addr[3], best_addr[4], best_addr[5]);
+            if (!ble_get_reconnecting() || (ble_get_reconnecting() && s_found_previous_device)) {
                 try_to_connect(best_addr);
+                ESP_LOGI(TAG, "Connected to device: %02x:%02x:%02x:%02x:%02x:%02x",
+                         best_addr[0], best_addr[1], best_addr[2], best_addr[3], best_addr[4], best_addr[5]);
             } else {
                 ESP_LOGW(TAG, "In reconnection mode but target device not found");
             }
         } else {
             ESP_LOGW(TAG, "No suitable device found with sufficient signal strength");
         }
+        s_is_reconnecting = false;
         break;
 
     case ESP_GAP_BLE_SCAN_RESULT_EVT: {
@@ -598,7 +623,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 
             // Compare names and record signal strength
             // 对比名称并记录信号强度
-            if (s_is_reconnecting) {
+            if (ble_get_reconnecting()) {
                 // In reconnection mode, compare device addresses
                 // 在重连模式下，比对设备地址
                 if (memcmp(best_addr, r->scan_rst.bda, sizeof(esp_bd_addr_t)) == 0) {
@@ -646,7 +671,7 @@ static void gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_
         memcpy(s_ble_profile.remote_bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
         ESP_LOGI(TAG, "Connected, conn_id=%d", s_ble_profile.conn_id);
 
-        ESP_LOGI(TAG, "Camera MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
+        ESP_LOGI(TAG, "Connect to camera MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
             param->connect.remote_bda[0],
             param->connect.remote_bda[1],
             param->connect.remote_bda[2],
@@ -804,10 +829,7 @@ static void gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_
 // BLE Advertising Data Format
 // 广播数据
 static uint8_t adv_data[] = {
-    0x02, 0x01, 0x00,
-    10, 0xff, 
-    'W','K','P','1','2','3','4','5','6',
-    5, 0x12, 0x0c, 0x00, 0x14, 0x00, 0x00, 0x00
+    10, 0xff, 'W','K','P','1','2','3','4','5','6'
 };
 
 static esp_timer_handle_t adv_timer;
@@ -827,15 +849,16 @@ esp_err_t ble_start_advertising() {
     }
 
     for (int i = 0; i < 6; i++) {
-        adv_data[8 + i] = s_ble_profile.remote_bda[5 - i];
+        // adv_data[8 + i] = s_ble_profile.remote_bda[5 - i];
+        adv_data[5 + i] = s_ble_profile.remote_bda[5 - i];
     }
 
     ESP_LOGI(TAG, "Modified Advertising Data (with MAC):");
     ESP_LOG_BUFFER_HEX(TAG, adv_data, sizeof(adv_data));
 
     esp_ble_adv_params_t adv_params = {
-        .adv_int_min = 0x100,
-        .adv_int_max = 0x200,
+        .adv_int_min = 0x20,
+        .adv_int_max = 0x40,
         .adv_type = ADV_TYPE_IND,
         .channel_map = ADV_CHNL_ALL,
     };
@@ -852,11 +875,14 @@ esp_err_t ble_start_advertising() {
         return ret;
     }
 
-    const esp_timer_create_args_t timer_args = {
-        .callback = &stop_adv_after_2s,
-        .name = "adv_timer"
-    };
-    esp_timer_create(&timer_args, &adv_timer);
+    if (adv_timer == NULL) {
+        const esp_timer_create_args_t timer_args = {
+            .callback = &stop_adv_after_2s,
+            .name = "adv_timer"
+        };
+        esp_timer_create(&timer_args, &adv_timer);
+    }
+    
     esp_timer_start_once(adv_timer, 2000000);  // 2000ms = 2,000,000us
 
     ESP_LOGI(TAG, "Advertising started (will auto-stop after 2s)");

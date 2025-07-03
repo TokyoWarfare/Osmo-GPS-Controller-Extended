@@ -14,5 +14,6 @@ idf_component_register(SRCS "app_main.c"
                             "../logic/enums_logic.c"
                             "../logic/key_logic.c"
                             "../logic/light_logic.c"
+                            "../test/test_gps.c"
                     PRIV_REQUIRES bt nvs_flash esp_driver_uart esp_driver_gpio led_strip
-                    INCLUDE_DIRS "." "../utils/crc" "../protocol" "../ble" "../data" "../logic")
+                    INCLUDE_DIRS "." "../utils/crc" "../protocol" "../ble" "../data" "../logic" "../test")

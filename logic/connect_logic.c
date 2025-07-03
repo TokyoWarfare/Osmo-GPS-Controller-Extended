@@ -77,11 +77,11 @@ void receive_camera_disconnect_handler() {
             // 尝试重连一次
             bool reconnected = false;
             ESP_LOGI(TAG, "Reconnection attempt...");
-            if (ble_reconnect() == ESP_OK) {
+            if (connect_logic_ble_connect(true) == ESP_OK) {
                 // Wait for reconnection result
                 // 等待重连结果
-                for (int j = 0; j < 30; j++) { // Wait for 3 seconds
-                                              // 等待3秒
+                for (int j = 0; j < 300; j++) { // Wait for 30 seconds
+                                                // 等待 30 秒
                     if (s_ble_profile.connection_status.is_connected) {
                         ESP_LOGI(TAG, "Reconnection successful");
                         reconnected = true;
@@ -144,7 +144,7 @@ int connect_logic_ble_init() {
  * @return int Returns 0 on success, -1 on failure
  *             成功返回 0，失败返回 -1
  */
-int connect_logic_ble_connect() {
+int connect_logic_ble_connect(bool is_reconnecting) {
     connect_state = BLE_SEARCHING;
 
     esp_err_t ret;
@@ -156,6 +156,7 @@ int connect_logic_ble_connect() {
 
     /* 2. Start scanning and attempt connection */
     /* 开始扫描并尝试连接 */
+    ble_set_reconnecting(is_reconnecting);
     ret = ble_start_scanning_and_connect();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to start scanning and connect, error: 0x%x", ret);
@@ -163,11 +164,11 @@ int connect_logic_ble_connect() {
         return -1;
     }
 
-    /* 3. Wait up to 6 seconds to ensure BLE connection success */
-    /* 等待最多 6 秒以确保 BLE 连接成功 */
-    ESP_LOGI(TAG, "Waiting up to 6s for BLE to connect...");
+    /* 3. Wait up to 30 seconds to ensure BLE connection success */
+    /* 等待最多 30 秒以确保 BLE 连接成功 */
+    ESP_LOGI(TAG, "Waiting up to 30s for BLE to connect...");
     bool connected = false;
-    for (int i = 0; i < 60; i++) { // 60 * 100ms = 6s
+    for (int i = 0; i < 300; i++) { // 300 * 100ms = 30s
         if (s_ble_profile.connection_status.is_connected) {
             ESP_LOGI(TAG, "BLE connected successfully");
             connected = true;
@@ -234,7 +235,7 @@ int connect_logic_ble_disconnect(void) {
     connect_state_t old_state = connect_state;
     connect_state = BLE_DISCONNECTING;
     
-    ESP_LOGI(TAG, "Disconnecting camera");
+    ESP_LOGI(TAG, "Disconnecting camera...");
 
     // Call BLE layer's ble_disconnect function
     // 调用 BLE 层的 ble_disconnect 函数

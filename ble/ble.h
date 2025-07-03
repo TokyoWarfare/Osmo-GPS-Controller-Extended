@@ -84,6 +84,10 @@ esp_err_t ble_init();
 
 esp_err_t ble_start_scanning_and_connect(void);
 
+void ble_set_reconnecting(bool flag);
+
+bool ble_get_reconnecting(void);
+
 esp_err_t ble_reconnect(void);
 
 esp_err_t ble_disconnect(void);

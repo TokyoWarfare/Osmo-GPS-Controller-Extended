@@ -23,6 +23,7 @@
 #include "gps_logic.h"
 #include "key_logic.h"
 #include "light_logic.h"
+#include "test_gps.h"
 
 /**
  * @brief Main application function, performs initialization and task loop
@@ -61,6 +62,10 @@ void app_main(void) {
     /* Initialize key logic */
     /* 初始化按键逻辑 */
     key_logic_init();
+
+    /* 测试 GPS 推送 */
+    /* Test GPS Data Push */
+    // start_ble_packet_test(1);
 
     // ===== Subsequent logic loop =====
     // ===== 后续逻辑循环 =====

@@ -139,6 +139,8 @@ CmdSet = 0x00, CmdID = 0x17
 | -------------- | ------ | ---- | -------- | ------- | ---------------------------- |
 | Response Frame | 0      | 1    | ret_code | uint8_t | Refer to common return codes |
 
+The GPS command frame test data can be found in the `test_gps.c` file.
+
 ## Mode Switch (1D04)
 
 CmdSet = 0x1D, CmdID = 0x04
@@ -251,20 +253,20 @@ CmdSet = 0x00, CmdID = 0x1A
 | -------------- | ------ | ---- | -------- | ------- | ---------------------------- |
 | Response Frame | 0      | 1    | ret_code | uint8_t | Refer to common return codes |
 
-**How to wake up the camera after it enters sleep mode?**
+**Question: How to wake up the camera after it enters sleep mode?**
  (The sleep mode here includes putting the camera to sleep by long-pressing the power button or using the Bluetooth remote control.)
 
-We need to broadcast a specific data packet. Refer to the following sample code:
+We need to broadcast a specific data packet for 2 seconds. Refer to the following sample code:
 
 ```c
 // BLE Advertising Data Format
 static uint8_t adv_data[] = {
-    0x02, 0x01, 0x00,
-    10, 0xff, 
-    'W','K','P','1','2','3','4','5','6',
-    5, 0x12, 0x0c, 0x00, 0x14, 0x00, 0x00, 0x00
+    10, 0xff, 'W','K','P','1','2','3','4','5','6'
 };
 ```
 
 The fields '1' to '6' represent the MAC address of the target camera device and should be written in reverse order. For detailed implementation, refer to the `ble_start_advertising` function in `ble.c`.
 
+Once the camera enters sleep mode, it can no longer send any data, which may cause message blockage. This is important.
+
+To use broadcast to wake up the camera, the prerequisite is that the remote controller has successfully connected to the camera within a recent period.

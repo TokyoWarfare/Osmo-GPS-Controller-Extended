@@ -167,6 +167,8 @@ typedef enum {
 
 可以参考以下文档，对项目有更全面的了解：
 
+* **Q&A**：[本项目的常见问题与解答](docs/Q&A_CN.md)
+
 - **ESP-IDF**：[ESP-IDF 官方 GitHub 仓库](https://github.com/espressif/esp-idf/)
 
 - **LC76G GNSS Module**：[LC76G GNSS Module - Waveshare Wiki](https://www.waveshare.net/wiki/LC76G_GPS_Module)

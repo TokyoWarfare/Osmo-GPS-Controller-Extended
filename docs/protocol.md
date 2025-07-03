@@ -104,3 +104,11 @@ const data_descriptor_t data_descriptors[] = {
 };
 ```
 
+## BLE Layer
+
+**Question:** What are the characteristic values used in communication between the remote controller and the camera?
+
+| **Characteristic** | **Description**                                              |
+| ------------------ | ------------------------------------------------------------ |
+| 0xFFF4             | Sent by the camera, received by the remote controller. Notification must be enabled. |
+| 0xFFF5             | Received by the camera, sent by the remote controller.       |
