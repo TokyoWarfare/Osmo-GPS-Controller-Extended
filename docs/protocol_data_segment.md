@@ -270,3 +270,15 @@ The fields '1' to '6' represent the MAC address of the target camera device and 
 Once the camera enters sleep mode, it can no longer send any data, which may cause message blockage. This is important.
 
 To use broadcast to wake up the camera, the prerequisite is that the remote controller has successfully connected to the camera within a recent period.
+
+Broadcast Packet Reference for Osmo Action 5 Pro:
+
+<img title="OA5Pro Bluetooth Scan Example" src="images/oa5pro_bluetooth_scan_example.png" alt="OA5Pro Bluetooth Scan Example" data-align="center" width="300">
+
+<img title="OA5Pro Wakeup Adv" src="images/oa5pro_wakeup_adv.png" alt="OA5Pro Wakeup Adv" data-align="center" width="280">
+
+Broadcast Packet Reference for Osmo Action 4:
+
+<img title="OA4 Bluetooth Scan Example" src="images/oa4_bluetooth_scan_example.png" alt="OA4 Bluetooth Scan Example" data-align="center" width="300">
+
+<img title="OA4 Wakeup Adv" src="images/oa4_wakeup_adv.png" alt="OA4 Wakeup Adv" data-align="center" width="280">

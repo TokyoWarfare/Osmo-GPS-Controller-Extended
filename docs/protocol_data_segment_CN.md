@@ -274,3 +274,14 @@ static uint8_t adv_data[] = {
 
 使用广播唤醒相机的前提是：遥控器在近期内曾成功连接过该相机。
 
+Osmo Action 5 Pro 广播包参考：
+
+<img title="OA5Pro Bluetooth Scan Example" src="images/oa5pro_bluetooth_scan_example.png" alt="OA5Pro Bluetooth Scan Example" data-align="center" width="300">
+
+<img title="OA5Pro Wakeup Adv" src="images/oa5pro_wakeup_adv.png" alt="OA5Pro Wakeup Adv" data-align="center" width="280">
+
+Osmo Action 4 广播包参考：
+
+<img title="OA4 Bluetooth Scan Example" src="images/oa4_bluetooth_scan_example.png" alt="OA4 Bluetooth Scan Example" data-align="center" width="300">
+
+<img title="OA4 Wakeup Adv" src="images/oa4_wakeup_adv.png" alt="OA4 Wakeup Adv" data-align="center" width="280">
