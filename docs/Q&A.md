@@ -12,12 +12,23 @@ This document is intended to address some common questions and answers. Before r
 
 [Add Camera Sleep Feature Example Documentation](docs/add_camera_sleep_feature_example.md): Demonstrates how to quickly add a new control feature to the remote controller.
 
+Note: This demo code is for reference only. If you encounter any bugs, please submit a detailed issue including videos or photos of the reproduction process, output logs, and reproduction steps. We will address the issue as soon as possible. Contributions via PRs are also welcome for fixes and improvements.
+
 ## 1. Characteristic Values for Communication Between Remote Controller and Camera
 
 | **Characteristic** | **Description**                                              |
 | ------------------ | ------------------------------------------------------------ |
 | 0xFFF4             | Sent by the camera, received by the remote controller; notifications must be enabled |
 | 0xFFF5             | Received by the camera, sent by the remote controller        |
+
+Reference code:
+
+```c
+/* Define the Service/Characteristic UUIDs to filter, for search use */
+#define REMOTE_TARGET_SERVICE_UUID   0xFFF0
+#define REMOTE_NOTIFY_CHAR_UUID      0xFFF4
+#define REMOTE_WRITE_CHAR_UUID       0xFFF5
+```
 
 ## 2. How to Put the Camera to Sleep and Wake It Up
 

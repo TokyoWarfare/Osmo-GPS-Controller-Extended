@@ -10,7 +10,7 @@
  * material(s) incorporated within the information, in any form, is strictly
  * prohibited without the express written consent of DJI.
  *
- * If you receive this source code without DJI’s authorization, you may not
+ * If you receive this source code without DJI's authorization, you may not
  * further disseminate the information, and you must immediately remove the
  * source code and notify DJI of its removal. DJI reserves the right to pursue
  * legal actions against you for any loss(es) or damage(s) caused by your
@@ -21,6 +21,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/timers.h"
+#include "freertos/queue.h"
+#include "freertos/task.h"
 #include "esp_log.h"
 
 #include "data.h"
@@ -94,6 +96,26 @@ static SemaphoreHandle_t s_map_mutex = NULL;
 /* 定时器句柄 */
 /* Timer handle */
 static TimerHandle_t cleanup_timer = NULL;
+
+/* 用于延迟处理通知数据的任务句柄 */
+/* Task handle for delayed notification processing */
+static TaskHandle_t notify_task_handle = NULL;
+
+/* 通知数据队列 */
+/* Queue for notification data */
+static QueueHandle_t notify_queue = NULL;
+
+/* 通知数据结构 */
+/* Structure for notification data */
+typedef struct {
+    uint8_t *data;
+    size_t data_length;
+} notify_data_t;
+
+/* 前向声明 */
+/* Forward declarations */
+static void notify_processing_task(void *pvParameters);
+static void process_notification_data(const uint8_t *raw_data, size_t raw_data_length);
 
 /**
  * @brief Initialize seq_entries and mark all entries as unused
@@ -420,6 +442,19 @@ void data_init(void) {
         ESP_LOGE(TAG, "Failed to create cleanup timer");
     } else {
         xTimerStart(cleanup_timer, 0);
+    }
+
+    // Initialize notification queue
+    // 初始化通知队列
+    notify_queue = xQueueCreate(MAX_SEQ_ENTRIES, sizeof(notify_data_t));
+    if (notify_queue == NULL) {
+        ESP_LOGE(TAG, "Failed to create notification queue");
+    }
+
+    // Initialize notification task
+    // 初始化通知任务
+    if (xTaskCreate(notify_processing_task, "notify_processing_task", 2048, NULL, 1, &notify_task_handle) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to create notification processing task");
     }
 
     // Mark data layer as initialized
@@ -755,21 +790,68 @@ esp_err_t data_wait_for_result_by_cmd(uint8_t cmd_set, uint8_t cmd_id, int timeo
         entry_t *entry = find_entry_by_cmd_id(cmd_set, cmd_id);
 
         if (entry) {
-            // Increase reference count to prevent release during waiting
-            // 增加引用计数，防止在等待期间被释放
+            // Check if entry already has result
+            // 检查条目是否已经有结果
+            if (entry->parse_result != NULL) {
+                // Entry already has result, get it immediately
+                // 条目已经有结果，立即获取
+                *out_result = malloc(entry->parse_result_length);
+                if (*out_result == NULL) {
+                    ESP_LOGE(TAG, "Failed to allocate memory for out_result");
+                    xSemaphoreGive(s_map_mutex);
+                    return ESP_ERR_NO_MEM;
+                }
+                
+                // Copy entry->parse_result data to out_result
+                // 拷贝 entry->parse_result 数据到 out_result
+                memcpy(*out_result, entry->parse_result, entry->parse_result_length);
+                *out_result_length = entry->parse_result_length;
+                *out_seq = entry->seq;
+                
+                // Free entry
+                // 释放条目
+                free_entry(entry);
+                xSemaphoreGive(s_map_mutex);
+                return ESP_OK;
+            }
+            
+            // Entry exists but no result yet, need to wait
+            // 条目存在但还没有结果，需要等待
+            SemaphoreHandle_t sem_to_wait = entry->sem;
             xSemaphoreGive(s_map_mutex);
-
+            
             // Wait for semaphore to be released
             // 等待信号量被释放
-            if (xSemaphoreTake(entry->sem, timeout_ticks) != pdTRUE) {
+            if (xSemaphoreTake(sem_to_wait, timeout_ticks) != pdTRUE) {
                 ESP_LOGW(TAG, "Wait for cmd_set=0x%04X cmd_id=0x%04X timed out", cmd_set, cmd_id);
+                // Try to clean up the entry if it still exists
+                // 尝试清理条目（如果仍然存在）
                 if (xSemaphoreTake(s_map_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-                    free_entry(entry);
+                    entry_t *timeout_entry = find_entry_by_cmd_id(cmd_set, cmd_id);
+                    if (timeout_entry) {
+                        free_entry(timeout_entry);
+                    }
                     xSemaphoreGive(s_map_mutex);
                 }
                 return ESP_ERR_TIMEOUT;
             }
-
+            
+            // Re-acquire mutex to get the result
+            // 重新获取互斥锁以获取结果
+            if (xSemaphoreTake(s_map_mutex, pdMS_TO_TICKS(100)) != pdTRUE) {
+                ESP_LOGE(TAG, "Failed to take mutex after semaphore wait");
+                return ESP_ERR_INVALID_STATE;
+            }
+            
+            // Find entry again after waiting
+            // 等待后重新查找条目
+            entry = find_entry_by_cmd_id(cmd_set, cmd_id);
+            if (!entry) {
+                ESP_LOGE(TAG, "Entry not found after semaphore wait");
+                xSemaphoreGive(s_map_mutex);
+                return ESP_ERR_NOT_FOUND;
+            }
+            
             // Get parsing result
             // 取出解析结果
             if (entry->parse_result) {
@@ -778,10 +860,8 @@ esp_err_t data_wait_for_result_by_cmd(uint8_t cmd_set, uint8_t cmd_id, int timeo
                 *out_result = malloc(entry->parse_result_length);
                 if (*out_result == NULL) {
                     ESP_LOGE(TAG, "Failed to allocate memory for out_result");
-                    if (xSemaphoreTake(s_map_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-                        free_entry(entry);
-                        xSemaphoreGive(s_map_mutex);
-                    }
+                    free_entry(entry);
+                    xSemaphoreGive(s_map_mutex);
                     return ESP_ERR_NO_MEM;
                 }
                 // Copy entry->parse_result data to out_result
@@ -790,10 +870,8 @@ esp_err_t data_wait_for_result_by_cmd(uint8_t cmd_set, uint8_t cmd_id, int timeo
                 *out_result_length = entry->parse_result_length;
             } else {
                 ESP_LOGE(TAG, "Parse result is NULL for cmd_set=0x%04X cmd_id=0x%04X", cmd_set, cmd_id);
-                if (xSemaphoreTake(s_map_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-                    free_entry(entry);
-                    xSemaphoreGive(s_map_mutex);
-                }
+                free_entry(entry);
+                xSemaphoreGive(s_map_mutex);
                 return ESP_ERR_NOT_FOUND;
             }
 
@@ -803,10 +881,8 @@ esp_err_t data_wait_for_result_by_cmd(uint8_t cmd_set, uint8_t cmd_id, int timeo
 
             // Free entry
             // 释放条目
-            if (xSemaphoreTake(s_map_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-                free_entry(entry);
-                xSemaphoreGive(s_map_mutex);
-            }
+            free_entry(entry);
+            xSemaphoreGive(s_map_mutex);
 
             return ESP_OK;
         }
@@ -845,22 +921,46 @@ void data_register_status_update_callback(camera_status_update_cb_t callback) {
 }
 
 /**
- * @brief Handle camera notifications and parse data (callback function)
- *        处理相机通知并解析数据（回调函数）
+ * @brief Task for processing notification data
+ *        处理通知数据的任务
  * 
- * This function processes notification data received from the camera. It first checks if the notification frame
- * is valid (starts with 0xAA), then parses the data segment in the notification frame.
- * If parsing is successful, it saves the result to the corresponding entry and wakes up the waiting task
- * through a semaphore. If no corresponding entry is found, it creates a new entry to store the parsing result.
- * 该函数处理从相机收到的通知数据。它首先检查通知帧是否有效（以 0xAA 开头），然后解析通知帧中的数据段。
- * 如果解析成功，会将结果保存到对应的条目中，并通过信号量唤醒等待的任务。如果没有找到对应的条目，则会创建新的条目来存储解析结果。
+ * This task runs in task context and processes notification data from the queue
+ * 此任务在任务上下文中运行，处理来自队列的通知数据
+ * 
+ * @param pvParameters Task parameters (unused)
+ *                    任务参数（未使用）
+ */
+static void notify_processing_task(void *pvParameters) {
+    notify_data_t notify_data;
+    
+    while (1) {
+        // Wait for notification data from queue
+        // 等待来自队列的通知数据
+        if (xQueueReceive(notify_queue, &notify_data, portMAX_DELAY) == pdTRUE) {
+            // Process the notification data
+            // 处理通知数据
+            process_notification_data(notify_data.data, notify_data.data_length);
+            
+            // Free the allocated data
+            // 释放分配的数据
+            free(notify_data.data);
+        }
+    }
+}
+
+/**
+ * @brief Process notification data (moved from interrupt context to task context)
+ *        处理通知数据（从中断上下文移到任务上下文）
+ * 
+ * This function contains the original logic from receive_camera_notify_handler
+ * 此函数包含来自 receive_camera_notify_handler 的原始逻辑
  * 
  * @param raw_data Raw notification data
  *                 原始通知数据
  * @param raw_data_length Data length
  *                        数据长度
  */
-void receive_camera_notify_handler(const uint8_t *raw_data, size_t raw_data_length) {
+static void process_notification_data(const uint8_t *raw_data, size_t raw_data_length) {
     // Validate input parameters
     // 验证输入参数
     if (!raw_data || raw_data_length < 2) {
@@ -948,7 +1048,9 @@ void receive_camera_notify_handler(const uint8_t *raw_data, size_t raw_data_leng
                     entry->parse_result_length = parse_result_length;
                     entry->seq = actual_seq;
                     entry->last_access_time = xTaskGetTickCount();
-                    ESP_LOGI(TAG, "New entry allocated for seq=0x%04X", frame.seq);
+                    ESP_LOGI(TAG, "New entry allocated for seq=0x%04X", actual_seq);
+                    // Wake up any waiting tasks
+                    // 唤醒任何等待的任务
                     xSemaphoreGive(entry->sem);
                 }
             }
@@ -973,5 +1075,52 @@ void receive_camera_notify_handler(const uint8_t *raw_data, size_t raw_data_leng
         }
     } else {
         // ESP_LOGW(TAG, "Received frame does not start with 0xAA, ignoring...");
+    }
+}
+
+/**
+ * @brief Handle camera notifications and parse data (callback function)
+ *        处理相机通知并解析数据（回调函数）
+ * 
+ * This function is called from BLE interrupt context and queues the data for processing
+ * 此函数从 BLE 中断上下文调用，并将数据排队等待处理
+ * 
+ * @param raw_data Raw notification data
+ *                 原始通知数据
+ * @param raw_data_length Data length
+ *                        数据长度
+ */
+void receive_camera_notify_handler(const uint8_t *raw_data, size_t raw_data_length) {
+    // Validate input parameters
+    // 验证输入参数
+    if (!raw_data || raw_data_length < 2) {
+        ESP_LOGW(TAG, "Notify data is too short or null, skip parse");
+        return;
+    }
+
+    // Allocate memory for the data
+    // 为数据分配内存
+    uint8_t *data_copy = malloc(raw_data_length);
+    if (data_copy == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate memory for notification data");
+        return;
+    }
+
+    // Copy the data
+    // 复制数据
+    memcpy(data_copy, raw_data, raw_data_length);
+
+    // Prepare notification data structure
+    // 准备通知数据结构
+    notify_data_t notify_data = {
+        .data = data_copy,
+        .data_length = raw_data_length
+    };
+
+    // Send to queue for processing in task context
+    // 发送到队列，在任务上下文中处理
+    if (xQueueSend(notify_queue, &notify_data, 0) != pdTRUE) {
+        ESP_LOGE(TAG, "Failed to queue notification data");
+        free(data_copy);
     }
 }

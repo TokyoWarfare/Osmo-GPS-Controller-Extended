@@ -290,8 +290,8 @@ int connect_logic_protocol_connect(uint32_t device_id, uint8_t mac_addr_len, con
     ESP_LOGI(TAG, "%s: Starting protocol connection", __FUNCTION__);
     uint16_t seq = generate_seq();
 
-    // 构造连接请求命令帧
     // Construct connection request command frame
+    // 构造连接请求命令帧
     connection_request_command_frame connection_request = {
         .device_id = device_id,
         .mac_addr_len = mac_addr_len,
@@ -302,23 +302,26 @@ int connect_logic_protocol_connect(uint32_t device_id, uint8_t mac_addr_len, con
     memcpy(connection_request.mac_addr, mac_addr, mac_addr_len);
 
 
-    // STEP1: 相机发送连接请求命令
-    // Send connection request command to camera
+    // STEP1: Send connection request command to camera
+    // 相机发送连接请求命令
     ESP_LOGI(TAG, "Sending connection request to camera...");
     CommandResult result = send_command(0x00, 0x19, CMD_WAIT_RESULT, &connection_request, seq, 1000);
 
-    /****************** 连接问题，这里相机可能返回 应答帧 也可能返回 命令帧 ******************/
     /**** Connection issue: camera may return either response frame or command frame ****/
+    /****************** 连接问题，这里相机可能返回 应答帧 也可能返回 命令帧 ******************/
 
     if (result.structure == NULL) {
-        // 这里直接去 esp_err_t ret = data_wait_for_result_by_cmd(0x00, 0x19, 30000, &received_seq, &parse_result, &parse_result_length);
+        // If a command frame is sent, execute this block of code
+        // 如果发命令帧，走这里的代码
+
         // Directly call data_wait_for_result_by_cmd(0x00, 0x19, 30000, &received_seq, &parse_result, &parse_result_length);
+        // 这里直接去 esp_err_t ret = data_wait_for_result_by_cmd(0x00, 0x19, 30000, &received_seq, &parse_result, &parse_result_length);
         
-        // 如果 != OK 说明确实没有收到消息，超时
         // If != OK, it means no message was received, timeout occurred
+        // 如果 != OK 说明确实没有收到消息，超时
         
-        // 否则 GOTO 到 wait_for_camera_command 标识
         // Otherwise, GOTO wait_for_camera_command label
+        // 否则 GOTO 到 wait_for_camera_command 标识
         void *parse_result = NULL;
         size_t parse_result_length = 0;
         uint16_t received_seq = 0;
@@ -328,27 +331,27 @@ int connect_logic_protocol_connect(uint32_t device_id, uint8_t mac_addr_len, con
             connect_logic_ble_disconnect();
             return -1;
         } else {
-            // 如果能收到数据，跳过解析相机返回响应，直接进入STEP2
-            // If data is received, skip parsing camera response and directly enter STEP2
+            // If data is received, skip parsing camera response and directly enter STEP3
+            // 如果能收到数据，跳过解析相机返回响应，直接进入STEP3
             goto wait_for_camera_command;
         }
     }
 
+    // STEP2: Parse the response returned from camera
     // 解析相机返回的响应
-    // Parse the response returned from camera
     connection_request_response_frame *response = (connection_request_response_frame *)result.structure;
     if (response->ret_code != 0) {
-        ESP_LOGE(TAG, "Connection request rejected by camera, ret_code: %d", response->ret_code);
+        ESP_LOGE(TAG, "Connection handshake failed: unexpected response from camera, ret_code: %d", response->ret_code);
         free(response);
         connect_logic_ble_disconnect();
         return -1;
     }
 
-    ESP_LOGI(TAG, "Connection request accepted, waiting for camera to send connection command...");
+    ESP_LOGI(TAG, "Handshake successful, waiting for the camera to actively send the connection command frame...");
     free(response);
 
-    // STEP2: 等待相机发送连接请求
-    // Wait for camera to send connection request
+    // STEP3: Wait for camera to send connection request
+    // 等待相机主动发送连接请求
 wait_for_camera_command:
     void *parse_result = NULL;
     size_t parse_result_length = 0;
@@ -361,8 +364,8 @@ wait_for_camera_command:
         return -1;
     }
 
-    // 解析相机发送的连接请求命令
     // Parse the connection request command sent by camera
+    // 解析相机发送的连接请求命令
     connection_request_command_frame *camera_request = (connection_request_command_frame *)parse_result;
 
     if (camera_request->verify_mode != 2) {
@@ -375,8 +378,8 @@ wait_for_camera_command:
     if (camera_request->verify_data == 0) {
         ESP_LOGI(TAG, "Camera approved the connection, sending response...");
 
-        // 构造连接应答帧
         // Construct connection response frame
+        // 构造连接应答帧
         connection_request_response_frame connection_response = {
             .device_id = device_id,
             .ret_code = 0,
@@ -386,12 +389,12 @@ wait_for_camera_command:
 
         ESP_LOGI(TAG, "Constructed connection response, sending...");
 
-        // STEP3: 发送连接应答帧
-        // Send connection response frame
+        // STEP4: Send connection response frame
+        // 发送连接应答帧
         send_command(0x00, 0x19, ACK_NO_RESPONSE, &connection_response, received_seq, 5000);
 
-        // 设置连接状态为协议连接
         // Set connection state to protocol connected
+        // 设置连接状态为协议连接
         connect_state = PROTOCOL_CONNECTED;
 
         ESP_LOGI(TAG, "Connection successfully established with camera.");
