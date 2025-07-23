@@ -222,7 +222,7 @@ CmdSet = 0x1D, CmdID = 0x02
 |               | 7      | 1    | fov_type              | uint8_t  | FOV type, reserved                                           |
 |               | 8      | 1    | photo_ratio           | uint8_t  | Photo aspect ratio<br/>0: 4:3<br/>1: 16:9                    |
 |               | 9      | 2    | real_time_countdown   | uint16_t | Real-time countdown, unit: seconds                           |
-|               | 11     | 2    | timelapse_interval    | uint16_t | Time-lapse video recording interval, unit: 10 seconds<br>In Time-lapse Sports mode, refers to the Sports mode magnification |
+|               | 11     | 2    | timelapse_interval    | uint16_t | In Time‑lapse Still mode, this specifies the capture interval in units of 0.1 seconds (for example, when the interval is 0.5 seconds, this value is 5).<br/>In Time‑lapse Sport mode, this specifies the capture rate (value is 0 under the Auto option). |
 |               | 13     | 2    | timelapse_duration    | uint16_t | Time-lapse duration, unit: seconds                           |
 |               | 15     | 4    | remain_capacity       | uint32_t | Remaining SD card capacity, unit: MB                         |
 |               | 19     | 4    | remain_photo_num      | uint32_t | Remaining photo count                                        |
