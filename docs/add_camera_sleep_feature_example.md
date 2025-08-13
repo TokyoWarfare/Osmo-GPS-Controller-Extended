@@ -1,6 +1,6 @@
 # Add Camera Sleep Feature Example Documentation
 
-The objective of this document is to implement a feature that allows the camera to enter sleep mode with a single press of the BOOT button, based on this open-source project.
+The objective of this document is to implement a feature that allows the camera to enter sleep mode with a single press of the BOOT button, based on this open-source demo.
 
 First, we can obtain the corresponding command frame and response frame structure information from the document, as shown below:
 
@@ -194,7 +194,7 @@ static void handle_boot_single_press() {
 
 After completing the code modifications, follow these steps to test:
 
-1. Rebuild the project.
+1. Rebuild the demo.
 
 2. Flash the firmware to the development board via USB cable.
 

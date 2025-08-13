@@ -8,7 +8,7 @@
 
 ## 简介
 
-本项目提供了一套运行在 ESP32-C6 开发板上的代码（基于 ESP-IDF 框架），演示了如何解析、处理并发送 DJI R SDK 协议以控制相机。示例程序实现了基本的遥控功能，包括：长按 BOOT 按键连接到最近的（兼容的）Osmo Action、Osmo 360 设备、单击控制拍摄、快速切换模式以及基于 LC76G GNSS 模块进行 GPS 数据推送。同时，程序根据设备状态动态调整 RGB LED 灯的显示。
+此 Demo 提供了一套运行在 ESP32-C6 开发板上的代码（基于 ESP-IDF 框架），演示了如何解析、处理并发送 DJI R SDK 协议以控制相机。示例程序实现了基本的遥控功能，包括：长按 BOOT 按键连接到最近的（兼容的）Osmo Action、Osmo 360 设备、单击控制拍摄、快速切换模式以及基于 LC76G GNSS 模块进行 GPS 数据推送。同时，程序根据设备状态动态调整 RGB LED 灯的显示。
 
 在阅读本文档与代码之前，建议先查看 [快速接入指南](docs/getting_started_guide_CN.md)。
 
@@ -45,7 +45,7 @@
 
 - 安装 ESP-IDF 工具链，具体安装步骤可参考下方的参考文档。我们推荐在 VSCode 中安装 ESP-IDF 插件，插件下载地址：[ESP-IDF 插件 - VSCode](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension)
 
-- 接下来，检查项目中的 `.vscode/settings.json` 文件，确保 IDF 相关的参数（port、flashType）配置正确。
+- 接下来，检查 Demo 中的 `.vscode/settings.json` 文件，确保 IDF 相关的参数（port、flashType）配置正确。
 
 - 完成环境配置后，编译并烧录代码到开发板，使用 monitor 查看实时日志。您可以通过观察开发板上的 RGB 灯状态来了解当前设备状态：红色表示未初始化，黄色表示 BLE 初始化完成，设备已准备就绪。
 
@@ -53,7 +53,7 @@
 
 - 单击 BOOT 按键时，相机开始或结束拍摄。长时间录制时，RGB 灯会闪烁。
 
-## 项目结构
+## Demo 结构
 
 ```
 ├── ble              # 蓝牙设备层
@@ -62,7 +62,7 @@
 ├── protocol         # 协议层
 ├── main             # 主程序入口
 ├── utils            # 工具函数
-└── CMakeLists.txt   # 项目构建文件
+└── CMakeLists.txt   # Demo 构建文件
 ```
 
 - **ble**：负责 ESP32 与相机之间的 BLE 连接、数据读写等操作。
@@ -167,9 +167,9 @@ typedef enum {
 
 ## 其它参考文档
 
-可以参考以下文档，对项目有更全面的了解：
+可以参考以下文档，对此 Demo 有更全面的了解：
 
-* **Q&A**：[本项目的常见问题与解答](docs/Q&A_CN.md)
+* **Q&A**：[本 Demo 的常见问题与解答](docs/Q&A_CN.md)
 * **ESP-IDF**：[ESP-IDF 官方 GitHub 仓库](https://github.com/espressif/esp-idf/)
 * **LC76G GNSS Module**：[LC76G GNSS Module - Waveshare Wiki](https://www.waveshare.net/wiki/LC76G_GPS_Module)
 * **ESP32-C6-WROOM-1**：[ESP32-C6-DevKitC-1 v1.2 - ESP32-C6 用户指南](https://docs.espressif.com/projects/esp-dev-kits/zh_CN/latest/esp32c6/esp32-c6-devkitc-1/user_guide.html)

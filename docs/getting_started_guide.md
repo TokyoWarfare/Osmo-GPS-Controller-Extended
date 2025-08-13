@@ -25,7 +25,7 @@ The basic connection workflow of the Bluetooth controller is as follows:
 
 * **Interactive Operations**: Based on the established connection, execute interactive commands such as shooting, recording, mode switching, sleep, wake-up, GPS pushing, etc.
 
-We use **Establish Connection** as an entry point to help you quickly gain an overall understanding of this demo:
+We use **Establish Connection** as an entry point to help you quickly gain an overall understanding of this open-source demo:
 
 * First, the **open source protocol** used is the **DJI R SDK** protocol. For detailed instructions, please refer to: [Protocol Parsing Documentation](./protocol.md).
 
@@ -73,7 +73,7 @@ After the BLE layer establishes a connection, the camera's communication channel
 
 ### 3.2 Protocol Parsing Development
 
-Mainly involves: parsing and encapsulation of DJI R SDK protocol frames
+Mainly involves: parsing and encapsulation of DJI R SDK protocol frames, It is necessary to read the [Protocol Parsing Documentation](./protocol.md) and the [DATA Segment Documentation](./protocol_data_segment.md) in advance.
 
 In the previous section, you have learned about the basic structure of the DJI R SDK protocol. Next, you need to write parsing and encapsulation functions based on its frame format. You can refer to the existing code in the Demo:
 
@@ -119,13 +119,15 @@ If you notice discrepancies between the protocol documentation and the actual da
 
 ## 5. Summary of All Documentation References
 
-### 5.1 Demo Related Documentation
-
-[Demo README Documentation](../README.md): Introduces the background and structure of the entire open source demo
+### 5.1 Protocol Documentation
 
 [Protocol Parsing Documentation](./protocol.md): Quick understanding of the basic composition of the DJI R SDK protocol
 
 [DATA Segment Documentation](./protocol_data_segment.md): Detailed explanation of various commands and functions supported by the camera
+
+### 5.2 Demo Related Documentation
+
+[Demo README Documentation](../README.md): Introduces the background and structure of the entire open source demo
 
 [Data Layer Documentation](./data_layer.md): Design principles and implementation details of the data layer for development reference
 
@@ -133,7 +135,7 @@ If you notice discrepancies between the protocol documentation and the actual da
 
 [FAQ_for_this_demo](./Q&A.md): Answers some common questions that may be encountered during development
 
-### 5.2 External Reference Documentation
+### 5.3 External Reference Documentation
 
 **ESP-IDF**: [ESP-IDF Official GitHub Repository](https://github.com/espressif/esp-idf/)
 

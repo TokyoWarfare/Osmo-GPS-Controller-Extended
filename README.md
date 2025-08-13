@@ -8,7 +8,7 @@
 
 ## Introduction
 
-This project provides a set of code running on the ESP32-C6 development board (based on the ESP-IDF framework), demonstrating how to parse, process, and send the DJI R SDK protocol to control the camera. The example program implements basic remote control functions, including: long-pressing the BOOT button to connect to the nearest (compatible) Osmo Action / Osmo 360 device, single-clicking to control recording, quickly switching modes, and pushing GPS data based on the LC76G GNSS module. Additionally, the program dynamically adjusts the RGB LED display based on the device's status.
+This demo provides a set of code running on the ESP32-C6 development board (based on the ESP-IDF framework), demonstrating how to parse, process, and send the DJI R SDK protocol to control the camera. The example program implements basic remote control functions, including: long-pressing the BOOT button to connect to the nearest (compatible) Osmo Action / Osmo 360 device, single-clicking to control recording, quickly switching modes, and pushing GPS data based on the LC76G GNSS module. Additionally, the program dynamically adjusts the RGB LED display based on the device's status.
 
 Before reading this document and the code, it is recommended to first review the [Getting Started Guide](docs/getting_started_guide.md).
 
@@ -45,14 +45,14 @@ Please ensure that the pins are correctly connected, especially the TX and RX pi
 
 * Install the ESP-IDF toolchain. For installation steps, refer to the documentation below. We recommend installing the ESP-IDF extension for VSCode. You can download the plugin here: [ESP-IDF Plugin - VSCode](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension)
 
-* Next, check the `.vscode/settings.json` file in the project to ensure that the IDF-related parameters are configured correctly.
+* Next, check the `.vscode/settings.json` file in the demo to ensure that the IDF-related parameters are configured correctly.
 
 * After setting up the environment, compile and flash the code to the development board. Use the monitor to view real-time logs. You can check the current device state by observing the RGB light status on the development board: red indicates uninitialized, yellow indicates BLE initialization complete, and the device is ready.
 - When the BOOT button is long-pressed, the RGB LED flashes blue, indicating that it is searching for and connecting to the nearest Osmo Action device. A steady blue light indicates that BLE is connected, a steady green light indicates that the protocol is connected and commands can be sent and received, and a steady purple light indicates that the protocol is connected and GPS signal is available.
 
 - When the BOOT button is clicked, the camera starts or stops recording. During long recording sessions, the RGB LED will flash.
 
-## Project Structure
+## Demo Structure
 
 ```
 ├── ble              # Bluetooth device layer
@@ -61,7 +61,7 @@ Please ensure that the pins are correctly connected, especially the TX and RX pi
 ├── protocol         # Protocol layer
 ├── main             # Main entry point
 ├── utils            # Utility functions
-└── CMakeLists.txt   # Project build file
+└── CMakeLists.txt   # Demo build file
 ```
 
 - **ble**: Responsible for BLE connection between the ESP32 and the camera, as well as data read/write operations.
@@ -159,7 +159,7 @@ For detailed implementation, please refer to: [Add Camera Sleep Feature Example 
 
 ## Reference Documents
 
-For a more comprehensive understanding of the project, refer to the following documents:
+For a more comprehensive understanding of the demo, refer to the following documents:
 
 * **Q&A**: [FAQ_for_this_demo](docs/Q&A.md)
 

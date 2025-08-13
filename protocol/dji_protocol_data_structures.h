@@ -135,13 +135,13 @@ typedef struct __attribute__((packed)) {
 } camera_status_subscription_command_frame;
 
 typedef struct __attribute__((packed)) {
-    uint8_t camera_mode;           // Camera mode: 0x00-Slow motion, 0x01-Video, 0x02-Still time-lapse, 0x05-Photo, 0x0A-Motion time-lapse, 0x1A-Live stream, 0x23-UVC live stream, 0x28-Low light video (Super night scene in Osmo Action 5 Pro), 0x34-Subject follow, others-Use new protocol (refer to New camera status push 1D06)
-                                   // 相机模式：0x00 - 慢动作，0x01 - 视频，0x02 - 静止延时，0x05 - 拍照，0x0A - 运动延时，0x1A - 直播，0x23 - UVC直播，0x28 - 低光视频（Osmo Action 5 Pro中为超级夜景），0x34 - 人物跟随，其它值 - 使用新协议（参考新相机状态推送1D06）
+    uint8_t camera_mode;           // Camera mode: 0x00-Slow Motion, 0x01-Video, 0x02-Timelapse, 0x05-Photo, 0x0A-Hyperlapse, 0x1A-Live stream, 0x23-UVC live stream, 0x28-Low light video (Super night scene in Osmo Action 5 Pro), 0x34-Subject follow, others-Use new protocol (refer to New camera status push 1D06)
+                                   // 相机模式：0x00 - 慢动作，0x01 - 视频，0x02 - 静止延时，0x05 - 拍照，0x0A - 运动延时，0x1A - 直播，0x23 - UVC直播，0x28 - 低光视频（超级夜景），0x34 - 人物跟随，其它值 - 使用新协议（参考新相机状态推送1D06）
     uint8_t camera_status;         // Camera status: 0x00-Screen off, 0x01-Live view (including screen on but not recording), 0x02-Playback, 0x03-Photo/video in progress, 0x05-Pre-recording
                                    // 相机状态：0x00 - 屏幕关闭，0x01 - 直播（包括亮屏未录制），0x02 - 回放，0x03 - 拍照或录像中，0x05 - 预录制中
     uint8_t video_resolution;      // Video resolution: 10-1080P, 16-4K 16:9, 45-2.7K 16:9, 66-1080P 9:16, 67-2.7K 9:16, 95-2.7K 4:3, 103-4K 4:3, 109-4K 9:16; Photo format (Osmo Action): 4-L, 3-M; Photo format (Osmo 360): 4-Ultra Wide 30MP, 3-Wide 20MP, 2-Standard 12MP
                                    // 视频分辨率：10 - 1080P，16 - 4K 16:9，45 - 2.7K 16:9，66 - 1080P 9:16，67 - 2.7K 9:16，95 - 2.7K 4:3，103 - 4K 4:3，109 - 4K 9:16；拍照画幅（Osmo Action）：4 - L，3 - M；拍照画幅（Osmo 360）：4 - Ultra Wide 30MP，3 - Wide 20MP，2 - Standard 12MP
-    uint8_t fps_idx;               // Frame rate: 1-24fps, 2-25fps, 3-30fps, 4-48fps, 5-50fps, 6-60fps, 10-100fps, 7-120fps, 19-200fps, 8-240fps; In slow motion mode: multiplier = fps/30; In photo mode: burst count (1-single photo, >1-burst count)
+    uint8_t fps_idx;               // Frame rate: 1-24fps, 2-25fps, 3-30fps, 4-48fps, 5-50fps, 6-60fps, 10-100fps, 7-120fps, 19-200fps, 8-240fps; In Slow Motion mode: multiplier = fps/30; In photo mode: burst count (1-single photo, >1-burst count)
                                    // 帧率：1 - 24fps，2 - 25fps，3 - 30fps，4 - 48fps，5 - 50fps，6 - 60fps，10 - 100fps，7 - 120fps，19 - 200fps，8 - 240fps；慢动作模式时：倍率 = 帧率/30；拍照模式时：连拍数（1 - 普通拍照只拍一张，>1 - 连拍张数）
     uint8_t eis_mode;              // Electronic image stabilization mode: 0-Off, 1-RS, 2-HS, 3-RS+, 4-HB
                                    // 电子防抖模式：0 - 关闭，1 - RS，2 - HS，3 - RS+，4 - HB
@@ -153,7 +153,7 @@ typedef struct __attribute__((packed)) {
                                    // 照片比例：0 - 4:3，1 - 16:9
     uint16_t real_time_countdown;  // Real-time countdown in seconds
                                    // 实时倒计时，单位：秒
-    uint16_t timelapse_interval;   // In still time-lapse mode: shooting interval in 0.1s (e.g., for 0.5s interval, value is 5); In motion time-lapse mode: shooting rate (0 for Auto option)
+    uint16_t timelapse_interval;   // In Timelapse mode: shooting interval in 0.1s (e.g., for 0.5s interval, value is 5); In Hyperlapse mode: shooting rate (0 for Auto option)
                                    // 静止延时摄影模式下：拍摄时间间隔，单位：0.1秒（例如间隔0.5秒时值为5）；运动延时摄影模式下：拍摄速率（Auto选项下值为0）
     uint16_t timelapse_duration;   // Time-lapse recording duration in seconds
                                    // 延时录像时长，单位：秒

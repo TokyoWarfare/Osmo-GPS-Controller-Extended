@@ -487,9 +487,9 @@ esp_err_t ble_register_notify(uint16_t conn_id, uint16_t char_handle) {
  * 反注册（关闭）Notify
  *
  * @note  This is just a demonstration logic. You need the Client Config descriptor handle of the characteristic to operate.
- *        If needed in actual projects, you can directly save the descr handle previously, and then close it by writing 0x0000 here.
+ *        If needed in actual development, you can directly save the descr handle previously, and then close it by writing 0x0000 here.
  *        此处仅示例逻辑，需要特征的 Client Config 描述符 handle 来进行操作
- *        若实际项目需要，也可直接先前保存 descr handle，然后在此进行关闭写 0x0000
+ *        若实际开发需要，也可直接先前保存 descr handle，然后在此进行关闭写 0x0000
  *
  * @param conn_id   Connection ID
  *                  连接 ID

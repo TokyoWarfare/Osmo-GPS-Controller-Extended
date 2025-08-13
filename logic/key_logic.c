@@ -207,9 +207,9 @@ static void handle_boot_single_press() {
     //     free(key_report_response);
     // }
 
-    /* Switch camera mode */
-    /* 切换相机模式 */
-    // camera_mode_switch_response_frame_t *switch_response = command_logic_switch_camera_mode(CAMERA_MODE_TIMELAPSE_MOTION);
+    /* Switch camera to Hyperlapse mode */
+    /* 切换相机至运动延时模式 */
+    // camera_mode_switch_response_frame_t *switch_response = command_logic_switch_camera_mode(CAMERA_MODE_HYPERLAPSE);
     // if (switch_response != NULL) {
     //     free(switch_response);
     // }

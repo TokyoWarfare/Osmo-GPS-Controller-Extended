@@ -37,15 +37,15 @@ typedef enum {
 } cmd_type_t;
 
 typedef enum {
-    CAMERA_MODE_SLOW_MOTION = 0x00,       // 慢动作 / Slow Motion
-    CAMERA_MODE_NORMAL = 0x01,            // 视频 / Video
-    CAMERA_MODE_TIMELAPSE_STATIC = 0x02,  // 静止延时 / Still Time-lapse
-    CAMERA_MODE_PHOTO = 0x05,             // 拍照 / Photo
-    CAMERA_MODE_TIMELAPSE_MOTION = 0x0A,  // 运动延时 / Dynamic Time-lapse
-    CAMERA_MODE_LIVE_STREAMING = 0x1A,    // 直播 / Live Streaming
-    CAMERA_MODE_UVC_STREAMING = 0x23,     // UVC 直播 / UVC Live Streaming
-    CAMERA_MODE_LOW_LIGHT_VIDEO = 0x28,   // 低光视频（超级夜景）/ Ultra Night Scene
-    CAMERA_MODE_SMART_TRACKING = 0x34     // 人物跟随 / Human Tracking
+    CAMERA_MODE_SLOW_MOTION = 0x00,         // 慢动作 / Slow Motion
+    CAMERA_MODE_NORMAL = 0x01,              // 视频 / Video
+    CAMERA_MODE_TIMELAPSE = 0x02,           // 静止延时 / Timelapse
+    CAMERA_MODE_PHOTO = 0x05,               // 拍照 / Photo
+    CAMERA_MODE_HYPERLAPSE = 0x0A,          // 运动延时 / Hyperlapse
+    CAMERA_MODE_LIVE_STREAMING = 0x1A,      // 直播 / Live Streaming
+    CAMERA_MODE_UVC_STREAMING = 0x23,       // UVC 直播 / UVC Live Streaming
+    CAMERA_MODE_SUPERNIGHT = 0x28,          // 低光视频（超级夜景）/ SuperNight
+    CAMERA_MODE_SUBJECT_TRACKING = 0x34     // 人物跟随 / Subject Tracking
 } camera_mode_t;
 const char* camera_mode_to_string(camera_mode_t mode);
 

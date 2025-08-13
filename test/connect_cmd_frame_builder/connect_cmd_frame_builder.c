@@ -29,8 +29,8 @@
 #define ESP_LOGI(TAG, fmt, ...) printf("[INFO] %s: " fmt "\n", TAG, ##__VA_ARGS__)
 #define ESP_LOGW(TAG, fmt, ...) printf("[WARN] %s: " fmt "\n", TAG, ##__VA_ARGS__)
 
-// 复用项目中的数据结构定义
-// Reuse data structure definitions from the project
+// 复用 Demo 中的数据结构定义
+// Reuse data structure definitions from the demo
 #include "../protocol/dji_protocol_data_structures.h"
 #include "../utils/crc/custom_crc16.h"
 #include "../utils/crc/custom_crc32.h"

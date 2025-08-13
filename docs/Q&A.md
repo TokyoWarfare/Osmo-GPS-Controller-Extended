@@ -70,9 +70,9 @@ For detailed implementation, refer to the **Key Reporting (0011)** feature in th
 
 ## 7. **Magnification Calculation**
 
-- In slow-motion mode, magnification equals frame rate divided by 30.
-- In motion timelapse mode, magnification equals the time interval.
-- In static timelapse mode, there is no magnification display—only the interval time is shown.
+- In Slow Motion mode, magnification equals frame rate divided by 30.
+- In Hyperlapse mode, magnification equals the time interval.
+- In Timelapse mode, there is no magnification display—only the interval time is shown.
 
 ## 8. UI Design Corresponding to Camera Modes
 

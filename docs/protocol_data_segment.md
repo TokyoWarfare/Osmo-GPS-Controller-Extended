@@ -157,7 +157,7 @@ CmdSet = 0x1D, CmdID = 0x04
 | Response Frame | 0      | 1    | ret_code | uint8_t    | 0: Successful switch<br/>Non-0: Switch failed |
 |                | 1      | 4    | reserved | uint8_t[4] | Reserved                                      |
 
-For example, switching the camera to: Dynamic Time-lapse mode, the constructed DJI R SDK frame is as follows:
+For example, switching the camera to: Hyperlapse mode, the constructed DJI R SDK frame is as follows:
 
 ByteArray: [AA, 1B, 00, 01, 00, 00, 00, 00, 00, 03, 14, BF, 1D, 04, 00, 00, FF, 33, 0A, 01, 47, 39, 36, 92, A1, 09, 55]
 
@@ -214,17 +214,17 @@ CmdSet = 0x1D, CmdID = 0x02
 
 | Frame Type    | Offset | Size | Name                  | Type     | Description                                                  |
 | ------------- | ------ | ---- | --------------------- | -------- | ------------------------------------------------------------ |
-| Command Frame | 0      | 1    | camera_mode           | uint8_t  | Camera current mode<br/>0x00: Slow Motion<br/>0x01: Video<br/>0x02: Still Time-lapse (selectable in time-lapse photography)<br/>0x05: Photo<br/>0x0A: Dynamic Time-lapse (selectable in time-lapse photography)<br/>0x1A: Live Streaming<br/>0x23: UVC Live Streaming<br/>0x28: Low-light Video (Ultra Night Scene in Action 5 Pro)<br/>0x34: Human Tracking<br/>Others: Use the new protocol, referring to the **New Camera Status Push (1D06)**. When the camera status changes, a **1D02** command will be followed by a **1D06** command. |
+| Command Frame | 0      | 1    | camera_mode           | uint8_t  | Camera current mode<br/>0x00: Slow Motion<br/>0x01: Video<br/>0x02: Timelapse<br/>0x05: Photo<br/>0x0A: Hyperlapse<br/>0x1A: Live Streaming<br/>0x23: UVC Live Streaming<br/>0x28: SuperNight<br/>0x34: Subject Tracking<br/>Others: Use the new protocol, referring to the **New Camera Status Push (1D06)**. When the camera status changes, a **1D02** command will be followed by a **1D06** command. |
 |               | 1      | 1    | camera_status         | uint8_t  | Camera status<br/>0x00: Screen off<br/>0x01: Live streaming (including screen-on without recording)<br/>0x02: Playback<br/>0x03: Photo or recording<br/>0x05: Pre-recording |
 |               | 2      | 1    | video_resolution      | uint8_t  | Camera resolution<br/>10: 1080P<br/>16: 4K 16:9<br/>45: 2.7K 16:9<br/>66: 1080P 9:16<br/>67: 2.7K 9:16<br/>95: 2.7K 4:3<br/>103: 4K 4:3<br/>109：4K 9:16<br/>Photo format (Osmo Action)<br/>4: L<br/>3: M<br>Photo format (Osmo 360)<br/>4：Ultra Wide 30MP<br/>3：Wide 20MP<br/>2：Standard 12MP |
-|               | 3      | 1    | fps_idx               | uint8_t  | Camera frame rate<br/>1: 24fps<br/>2: 25fps<br/>3: 30fps<br/>4: 48fps<br/>5: 50fps<br/>6: 60fps<br/>10: 100fps<br/>7: 120fps<br/>19: 200fps<br/>8: 240fps<br/>In slow motion mode, this value indicates the slow motion multiplier, multiplier = frame rate / 30<br/>In photo mode, this value indicates burst count (1: normal photo, only one shot; >1: number of continuous shots) |
+|               | 3      | 1    | fps_idx               | uint8_t  | Camera frame rate<br/>1: 24fps<br/>2: 25fps<br/>3: 30fps<br/>4: 48fps<br/>5: 50fps<br/>6: 60fps<br/>10: 100fps<br/>7: 120fps<br/>19: 200fps<br/>8: 240fps<br/>In Slow Motion mode, this value indicates the Slow Motion multiplier, multiplier = frame rate / 30<br/>In photo mode, this value indicates burst count (1: normal photo, only one shot; >1: number of continuous shots) |
 |               | 4      | 1    | EIS_mode              | uint8_t  | Camera Stabilization Mode<br/>0: Off<br/>1: RS<br/>2: HS<br/>3: RS+<br/>4: HB |
 |               | 5      | 2    | record_time           | uint16_t | Current recording time (Including Pre-Recording Duration), unit: seconds<br/>In burst mode, refers to burst time limit, unit: milliseconds |
 |               | 7      | 1    | fov_type              | uint8_t  | FOV type, reserved                                           |
 |               | 8      | 1    | photo_ratio           | uint8_t  | Photo aspect ratio<br/>0: 4:3<br/>1: 16:9                    |
 |               | 9      | 2    | real_time_countdown   | uint16_t | Real-time countdown, unit: seconds                           |
 |               | 11     | 2    | timelapse_interval    | uint16_t | In Time‑lapse Still mode, this specifies the capture interval in units of 0.1 seconds (for example, when the interval is 0.5 seconds, this value is 5).<br/>In Time‑lapse Sport mode, this specifies the capture rate (value is 0 under the Auto option). |
-|               | 13     | 2    | timelapse_duration    | uint16_t | Time-lapse duration, unit: seconds                           |
+|               | 13     | 2    | timelapse_duration    | uint16_t | Timelapse duration, unit: seconds                            |
 |               | 15     | 4    | remain_capacity       | uint32_t | Remaining SD card capacity, unit: MB                         |
 |               | 19     | 4    | remain_photo_num      | uint32_t | Remaining photo count                                        |
 |               | 23     | 4    | remain_time           | uint32_t | Remaining recording time, unit: seconds                      |
@@ -238,17 +238,17 @@ CmdSet = 0x1D, CmdID = 0x02
 
 **Notes:**
 
-1. In slow motion, the multiplier = frame rate / 30
-2. In motion time-lapse, the multiplier = time-lapse recording interval
-3. In static time-lapse, there is no multiplier displayed, only the interval time
+1. In Slow Motion mode, the multiplier = frame rate / 30
+2. In Hyperlapse mode, the multiplier = time-lapse recording interval
+3. In Timelapse mode, there is no multiplier displayed, only the interval time
 
 **For how parameters are displayed under different camera modes and how they correspond to `camera_mode`, please refer to the following:**
 
-* `camera_mode` = 0x00（Slow Motion）
+* `camera_mode` = 0x00 (Slow Motion)
 
   <img title="Slow Motion UI Design" src="images/camera_mode_ui_design/slow_motion.png" alt="Slow Motion UI Design" data-align="center" width="300">
 
-* `camera_mode` = 0x01（Video）
+* `camera_mode` = 0x01 (Video)
 
   Video, loop recording (if the `loop_record_sends` field is not 0, loop recording is active):
 
@@ -258,11 +258,11 @@ CmdSet = 0x1D, CmdID = 0x02
 
   <img title="Video Mode 2" src="images/camera_mode_ui_design/video_2.png" alt="Video Mode 2" data-align="center" width="400">
 
-* `camera_mode` = 0x02（Still Time-lapse）
+* `camera_mode` = 0x02 (Timelapse)
 
-  <img title="Still Time-lapse" src="images/camera_mode_ui_design/still_time_lapse.png" alt="Still Time-lapse" data-align="center" width="400">
+  <img title="Timelapse" src="images/camera_mode_ui_design/timelapse.png" alt="Timelapse" data-align="center" width="400">
 
-* `camera_mode` = 0x05（Photo）
+* `camera_mode` = 0x05 (Photo)
 
   <img title="Photo" src="images/camera_mode_ui_design/photo.png" alt="Photo" data-align="center" width="650">
 
@@ -272,19 +272,19 @@ CmdSet = 0x1D, CmdID = 0x02
 
   The L / M photo sizes are detailed in the `video_resolution` field.
 
-* `camera_mode` = 0x0A（Dynamic Time-lapse）
+* `camera_mode` = 0x0A (Hyperlapse)
 
-  <img title="Dynamic Time-lapse" src="images/camera_mode_ui_design/dynamic_time_lapse.png" alt="Dynamic Time-lapse" data-align="center" width="260">
+  <img title="Hyperlapse" src="images/camera_mode_ui_design/hyperlapse.png" alt="Hyperlapse" data-align="center" width="260">
 
-* `camera_mode` = 0x28（Low-light Video）
+* `camera_mode` = 0x28 (Low-light Video)
 
   Refer to 0x01 Video Mode.
 
-* `camera_mode` = 0x34（Human Tracking）
+* `camera_mode` = 0x34 (Subject Tracking)
 
   Refer to 0x05 Photo Mode, but only display resolution, frame rate, and aspect ratio.
 
-* `camera_mode` = 0x1A（Live Mode）、0x23（UVC Live Mode）
+* `camera_mode` = 0x1A (Live Mode)、0x23 (UVC Live Mode)
 
   <img title="Live Stream" src="images/camera_mode_ui_design/livestream.png" alt="Live Stream" data-align="center" width="360">
 

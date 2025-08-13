@@ -25,20 +25,20 @@ const char* camera_mode_to_string(camera_mode_t mode) {
             return "慢动作 / Slow Motion";
         case CAMERA_MODE_NORMAL:
             return "视频 / Video";
-        case CAMERA_MODE_TIMELAPSE_STATIC:
-            return "静止延时 / Still Time-lapse";
+        case CAMERA_MODE_TIMELAPSE:
+            return "静止延时 / Timelapse";
         case CAMERA_MODE_PHOTO:
             return "拍照 / Photo";
-        case CAMERA_MODE_TIMELAPSE_MOTION:
-            return "运动延时 / Dynamic Time-lapse";
+        case CAMERA_MODE_HYPERLAPSE:
+            return "运动延时 / Hyperlapse";
         case CAMERA_MODE_LIVE_STREAMING:
             return "直播 / Live Streaming";
         case CAMERA_MODE_UVC_STREAMING:
             return "UVC 直播 / UVC Live Streaming";
-        case CAMERA_MODE_LOW_LIGHT_VIDEO:
-            return "低光视频（超级夜景）/ Ultra Night Scene";
-        case CAMERA_MODE_SMART_TRACKING:
-            return "人物跟随 / Human Tracking";
+        case CAMERA_MODE_SUPERNIGHT:
+            return "低光视频（超级夜景）/ SuperNight";
+        case CAMERA_MODE_SUBJECT_TRACKING:
+            return "人物跟随 / Subject Tracking";
         default:
             return "其它模式，详见 1D06 命令 / Other Mode, see 1D06 Cmd";
     }
