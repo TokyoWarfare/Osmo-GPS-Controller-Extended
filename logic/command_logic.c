@@ -212,7 +212,7 @@ camera_mode_switch_response_frame_t* command_logic_switch_camera_mode(camera_mod
     uint16_t seq = generate_seq();
 
     camera_mode_switch_command_frame_t command_frame = {
-        .device_id = 0x33FF0000,
+        .device_id = 0xFF330000,
         .mode = mode,
         .reserved = {0x01, 0x47, 0x39, 0x36}  // Reserved field
                                               // 预留字段

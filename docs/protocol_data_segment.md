@@ -8,6 +8,7 @@ Used to distinguish camera models. The device ID is included when the camera act
 | ----------------- | --------- |
 | Osmo Action 4     | 0xFF33    |
 | Osmo Action 5 Pro | 0xFF44    |
+| Osmo 360          | TBD       |
 
 Common Return Codes:
 
@@ -41,7 +42,7 @@ CmdSet = 0x00, CmdID = 0x19
 
 **Connection Process (Please read carefully):**
 
-1. **Remote Control Initiates Connection Request** The remote control sends a connection request to the camera, with a random verification code in `verify_data` (this verification code matches the code on the remote control to confirm that the connection is with the current remote control). The DJI GPS Bluetooth remote control's `device_id` is: 0xFF33.
+1. **Remote Control Initiates Connection Request** The remote control sends a connection request to the camera, with a random verification code in `verify_data` (this verification code matches the code on the remote control to confirm that the connection is with the current remote control).
 
    - **First pairing**, set `verify_mode` to `1`, meaning verification is required. In this case, the camera will display a verification code pop-up, and the user needs to confirm whether to allow the connection.
    - **Already paired**, set `verify_mode` to `0`, meaning the remote control has been paired with the camera. At this point, the camera decides whether to show the pop-up based on the saved pairing history. If the camera has the pairing record saved, no pop-up will appear; if the camera has cleared the pairing information, the pop-up will show immediately.
@@ -51,7 +52,7 @@ CmdSet = 0x00, CmdID = 0x19
 3. **Camera Initiates Connection Request** The camera sends a connection request to the remote control, setting `verify_mode` to `2`, and `verify_data` contains the verification result:
 
    - `0` means the connection is allowed;
-   - `1` means the connection is rejected. In this case, `device_id` contains the camera's device ID to distinguish different camera models (e.g., `Osmo Action 4`'s device ID is `0xFF33`, which is the same as the remote control's ID; this is a legacy issue).
+   - `1` means the connection is rejected. In this case, `device_id` contains the camera's device ID to distinguish different camera models.
 
 4. **Remote Control Initiates Connection Response** If the camera allows the connection, the remote control will respond to the connection request, filling in the camera number in the `reserved` field of the response frame. The camera number is used to identify different cameras and assign an index:
 
@@ -159,7 +160,7 @@ CmdSet = 0x1D, CmdID = 0x04
 
 For example, switching the camera to: Hyperlapse mode, the constructed DJI R SDK frame is as follows:
 
-ByteArray: [AA, 1B, 00, 01, 00, 00, 00, 00, 00, 03, 14, BF, 1D, 04, 00, 00, FF, 33, 0A, 01, 47, 39, 36, 92, A1, 09, 55]
+ByteArray: [AA, 1B, 00, 01, 00, 00, 00, 00, 05, 00, 57, EE, 1D, 04, 00, 00, 33, FF, 0A, 01, 47, 39, 36, F4, FA, E1, D0]
 
 AA: Fixed frame header
 
@@ -171,13 +172,13 @@ AA: Fixed frame header
 
 00 00 00: Reserved byte segment (RES).
 
-00 03: Sequence number (SEQ).
+05 00: Sequence number (SEQ).
 
-14 BF: CRC16 checksum of the previous data.
+57 EE: CRC16 checksum of the previous data.
 
-1D 04 / 00 00 FF 33 / 0A / 01 47 39 36: Data segment (DATA), consisting of (CmdSet, CmdID), device_id, mode, and reserved.
+1D 04 / 00 00 33 FF / 0A / 01 47 39 36: Data segment (DATA), consisting of (CmdSet, CmdID), device_id, mode, and reserved.
 
-92 A1 09 55: CRC32 checksum of the previous data.
+F4 FA E1 D0: CRC32 checksum of the previous data.
 
 ## Recording Control (1D03)
 

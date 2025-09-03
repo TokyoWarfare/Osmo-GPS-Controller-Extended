@@ -101,9 +101,9 @@ One approach is to use the **Recording Control command (1D03)**. However, we rec
 
 On the camera, pull down the menu, tap **Settings**, go to **Wireless Connection**, ensure that wireless connection is enabled, and reset the connection.
 
-## 13. Osmo Action 4 FFF4 NOTIFY Not Receiving Messages?
+## 13. FFF4 NOTIFY Not Receiving Messages?
 
-Under FFF4 NOTIFY, Osmo Action 4 and Osmo Action 5 Pro behave slightly differently: Osmo Action 5 Pro sends some frames starting with `0x55` (which can be ignored), whereas Osmo Action 4 does not.
+Under FFF4 NOTIFY, Osmo Action 4 and Osmo Action 5 Pro behave slightly differently: Osmo Action 5 Pro sends some frames starting with `0x55` (which can be ignored, only frames starting with 0xAA need to be parsed), whereas Osmo Action 4 does not.
 
 It is recommended to use a Bluetooth debugging tool to monitor Osmo Action 4 -> FFF4 NOTIFY in real time, and then send commands to FFF5 for testing. The test command frames can be referenced from the connection request frames in the `connect_cmd_frame.txt` file, or constructed and tested using `connect_cmd_frame_builder.c`.
 

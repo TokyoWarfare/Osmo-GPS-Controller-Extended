@@ -98,8 +98,8 @@
 
 在相机中下拉菜单，点击设置，进入无线连接，确保无线连接已开启，并重置连接。
 
-## 13. Osmo Action 4 的 FFF4 NOTIFY 接收不到消息？
+## 13. FFF4 NOTIFY 接收不到消息？
 
-在 FFF4 NOTIFY 下，Osmo Action 4 与 Osmo Action 5 Pro 的表现略有差异：Osmo Action 5 Pro 会推送一些以 `0x55` 开头的帧（可忽略），而 Osmo Action 4 不会。
+在 FFF4 NOTIFY 下，Osmo Action 4 与 Osmo Action 5 Pro 的表现略有差异：Osmo Action 5 Pro 会推送一些以 `0x55` 开头的帧（可忽略，只需要解析 0xAA 开头的帧），而 Osmo Action 4 不会。
 
 建议使用蓝牙调试工具实时监听 Osmo Action 4 的 FFF4 NOTIFY，并向 FFF5 发送命令进行测试。测试所用的命令帧可参考 `connect_cmd_frame.txt` 文件中的连接请求帧，也可通过 `connect_cmd_frame_builder.c` 构造并进行验证。

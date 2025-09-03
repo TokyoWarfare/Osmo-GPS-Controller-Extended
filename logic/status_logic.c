@@ -252,7 +252,7 @@ void update_new_camera_state_handler(void *data) {
 
     const new_camera_status_push_command_frame *parsed_data = (const new_camera_status_push_command_frame *)data;
 
-    ESP_LOGI(TAG, "[1D06] =============Osmo360============");
+    ESP_LOGI(TAG, "[1D06] ========== New Camera Status Push =========");
 
     // Update type_mode_name
     // 更新相机模式名字类型
@@ -294,7 +294,7 @@ void update_new_camera_state_handler(void *data) {
     memcpy(mode_param_str, parsed_data->mode_param, 20);
     ESP_LOGI(TAG, "[1D06] Mode parameters: %s", mode_param_str);
 
-    ESP_LOGI(TAG, "[1D06] ================================");
+    ESP_LOGI(TAG, "[1D06] ==========================================");
 
     free(data);
 }
