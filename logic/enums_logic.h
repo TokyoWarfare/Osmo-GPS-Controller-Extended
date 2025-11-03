@@ -37,15 +37,24 @@ typedef enum {
 } cmd_type_t;
 
 typedef enum {
-    CAMERA_MODE_SLOW_MOTION = 0x00,         // 慢动作 / Slow Motion
-    CAMERA_MODE_NORMAL = 0x01,              // 视频 / Video
-    CAMERA_MODE_TIMELAPSE = 0x02,           // 静止延时 / Timelapse
-    CAMERA_MODE_PHOTO = 0x05,               // 拍照 / Photo
-    CAMERA_MODE_HYPERLAPSE = 0x0A,          // 运动延时 / Hyperlapse
-    CAMERA_MODE_LIVE_STREAMING = 0x1A,      // 直播 / Live Streaming
-    CAMERA_MODE_UVC_STREAMING = 0x23,       // UVC 直播 / UVC Live Streaming
-    CAMERA_MODE_SUPERNIGHT = 0x28,          // 低光视频（超级夜景）/ SuperNight
-    CAMERA_MODE_SUBJECT_TRACKING = 0x34     // 人物跟随 / Subject Tracking
+    CAMERA_MODE_SLOW_MOTION        = 0x00,  // 慢动作 / Slow Motion
+    CAMERA_MODE_NORMAL             = 0x01,  // 视频 / Video
+    CAMERA_MODE_TIMELAPSE          = 0x02,  // 静止延时 / Timelapse
+    CAMERA_MODE_PHOTO              = 0x05,  // 拍照 / Photo
+    CAMERA_MODE_HYPERLAPSE         = 0x0A,  // 运动延时 / Hyperlapse
+    CAMERA_MODE_LIVE_STREAMING     = 0x1A,  // 直播 / Live Streaming
+    CAMERA_MODE_UVC_STREAMING      = 0x23,  // UVC 直播 / UVC Live Streaming
+    CAMERA_MODE_SUPERNIGHT         = 0x28,  // 低光视频（超级夜景）/ SuperNight
+    CAMERA_MODE_SUBJECT_TRACKING   = 0x34,  // 人物跟随 / Subject Tracking
+
+    CAMERA_MODE_PANORAMIC_VIDEO_360  = 0x38, // 全景视频 / Panoramic Video (Osmo360)
+    CAMERA_MODE_HYPERLAPSE_360       = 0x3A, // 运动延时 / Hyperlapse (Osmo360)
+    CAMERA_MODE_SELFIE_360           = 0x3C, // 自拍模式 / Selfie Mode (Osmo360)
+    CAMERA_MODE_PANORAMIC_PHOTO_360  = 0x3F, // 全景照片 / Panoramic Photo (Osmo360)
+    CAMERA_MODE_BOOST_VIDEO_360      = 0x41, // 极广角视频 / Boost Video (Osmo360)
+    CAMERA_MODE_VORTEX_360           = 0x43, // 旋转模式 / Vortex (Osmo360)
+    CAMERA_MODE_PANORAMIC_SUPERNIGHT_360         = 0x44,  // 全景超级夜景 / 360° SuperNight (Osmo360)
+    CAMERA_MODE_SINGLE_LENS_SUPERNIGHT_360       = 0x4A   // 单镜头超级夜景 / Single Lens SuperNight (Osmo360)
 } camera_mode_t;
 const char* camera_mode_to_string(camera_mode_t mode);
 

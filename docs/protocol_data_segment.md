@@ -4,11 +4,12 @@
 
 Used to distinguish camera models. The device ID is included when the camera actively sends the connection request result via Bluetooth:
 
-| Model             | device_id |
-| ----------------- | --------- |
-| Osmo Action 4     | 0xFF33    |
-| Osmo Action 5 Pro | 0xFF44    |
-| Osmo 360          | TBD       |
+| Model             | device_id                                                    |
+| ----------------- | ------------------------------------------------------------ |
+| Osmo Action 4     | 0xFF33                                                       |
+| Osmo Action 5 Pro | 0xFF44                                                       |
+| Osmo 360          | 0xFF66                                                       |
+| Osmo Nano         | Not supported yet. Please wait for a future firmware update. |
 
 Common Return Codes:
 
@@ -215,7 +216,7 @@ CmdSet = 0x1D, CmdID = 0x02
 
 | Frame Type    | Offset | Size | Name                  | Type     | Description                                                  |
 | ------------- | ------ | ---- | --------------------- | -------- | ------------------------------------------------------------ |
-| Command Frame | 0      | 1    | camera_mode           | uint8_t  | Camera current mode<br/>0x00: Slow Motion<br/>0x01: Video<br/>0x02: Timelapse<br/>0x05: Photo<br/>0x0A: Hyperlapse<br/>0x1A: Live Streaming<br/>0x23: UVC Live Streaming<br/>0x28: SuperNight<br/>0x34: Subject Tracking<br/>Others: Use the new protocol, referring to the **New Camera Status Push (1D06)**. When the camera status changes, a **1D02** command will be followed by a **1D06** command. |
+| Command Frame | 0      | 1    | camera_mode           | uint8_t  | Camera current mode<br/>0x00: Slow Motion<br/>0x01: Video<br/>0x02: Timelapse<br/>0x05: Photo<br/>0x0A: Hyperlapse<br/>0x1A: Live Streaming<br/>0x23: UVC Live Streaming<br/>0x28: SuperNight<br/>0x34: Subject Tracking<br/>------------------------------------------<br/>0x38: Panoramic Video (Osmo360)<br/>0x3A: Hyperlapse (Osmo360)<br/>0x3C: Selfie Mode (Osmo360)<br/>0x3F: Panoramic Photo (Osmo360)<br/>0x41: Boost Video (Osmo360)<br/>0x43: Vortex (Osmo360)<br/>0x44: 360° SuperNight (Osmo360)<br/>0x4A: Single Lens SuperNight (Osmo360)<br/>------------------------------------------<br/>Note: When the value is > 0x34, the new protocol is used. Refer to **New Camera Status Push (1D06)**. When the camera status changes, a **1D02** command will be followed by a **1D06** command, from which you can obtain the English mode name and shooting parameters. |
 |               | 1      | 1    | camera_status         | uint8_t  | Camera status<br/>0x00: Screen off<br/>0x01: Live streaming (including screen-on without recording)<br/>0x02: Playback<br/>0x03: Photo or recording<br/>0x05: Pre-recording |
 |               | 2      | 1    | video_resolution      | uint8_t  | Camera resolution<br/>10: 1080P<br/>16: 4K 16:9<br/>45: 2.7K 16:9<br/>66: 1080P 9:16<br/>67: 2.7K 9:16<br/>95: 2.7K 4:3<br/>103: 4K 4:3<br/>109：4K 9:16<br/>Photo format (Osmo Action)<br/>4: L<br/>3: M<br>Photo format (Osmo 360)<br/>4：Ultra Wide 30MP<br/>3：Wide 20MP<br/>2：Standard 12MP |
 |               | 3      | 1    | fps_idx               | uint8_t  | Camera frame rate<br/>1: 24fps<br/>2: 25fps<br/>3: 30fps<br/>4: 48fps<br/>5: 50fps<br/>6: 60fps<br/>10: 100fps<br/>7: 120fps<br/>19: 200fps<br/>8: 240fps<br/>In Slow Motion mode, this value indicates the Slow Motion multiplier, multiplier = frame rate / 30<br/>In photo mode, this value indicates burst count (1: normal photo, only one shot; >1: number of continuous shots) |

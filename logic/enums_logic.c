@@ -39,8 +39,26 @@ const char* camera_mode_to_string(camera_mode_t mode) {
             return "低光视频（超级夜景）/ SuperNight";
         case CAMERA_MODE_SUBJECT_TRACKING:
             return "人物跟随 / Subject Tracking";
+
+        case CAMERA_MODE_PANORAMIC_VIDEO_360:
+            return "全景视频 / Panoramic Video (Osmo360)";
+        case CAMERA_MODE_HYPERLAPSE_360:
+            return "运动延时 / Hyperlapse (Osmo360)";
+        case CAMERA_MODE_SELFIE_360:
+            return "自拍模式 / Selfie Mode (Osmo360)";
+        case CAMERA_MODE_PANORAMIC_PHOTO_360:
+            return "全景拍照 / Panoramic Photo (Osmo360)";
+        case CAMERA_MODE_BOOST_VIDEO_360:
+            return "极广角视频 / Boost Video (Osmo360)";
+        case CAMERA_MODE_VORTEX_360:
+            return "时空凝固 / Vortex (Osmo360)";
+        case CAMERA_MODE_PANORAMIC_SUPERNIGHT_360:
+            return "360° 超级夜景 / 360° SuperNight (Osmo360)";
+        case CAMERA_MODE_SINGLE_LENS_SUPERNIGHT_360:
+            return "单镜头超级夜景 / Single Lens SuperNight (Osmo360)";
+
         default:
-            return "其它模式，详见 1D06 命令 / Other Mode, see 1D06 Cmd";
+            return "未知模式 / Unknown mode";
     }
 }
 
