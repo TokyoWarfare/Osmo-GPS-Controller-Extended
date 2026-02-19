@@ -13,6 +13,11 @@ If the Osmo360 is in video mode it will change into panoramic photo mode and sta
 Tested to work with Septentrio G5P3, but should work with others regardless as there is no specific implementation of any feature of this module.
 May be one day DJi will e more open minded and have stuff like PPS supoprt, unstitched front rear shots individually, non propietari video formats etc... a bit more like the Insta.
 
+Pin13+GND (hold)--> Sync Start 
+Pin12+GND--> Timelapse Start/Stop
+
+
+
 ----------------------------------------------------------------------------------------
 ## ORIGINAL README
 
