@@ -29,6 +29,7 @@
 #include "status_logic.h"
 #include "dji_protocol_data_structures.h"
 
+
 static const char *TAG = "LOGIC_KEY";
 
 // 按键事件变量，用于存储当前按键事件
@@ -66,7 +67,33 @@ static TickType_t key_press_start_time = 0;
  * 4. 获取设备版本信息并订阅相机状态。
  * Get device version info and subscribe to camera status.
  */
-static void handle_boot_long_press() {
+ 
+ 
+
+static void sync_button_task(void *arg)
+{
+    bool last = true;
+
+    while (1) {
+        bool now = gpio_get_level(SYNC_BUTTON_GPIO);
+
+        // flanco descendente (pulsado)
+        if (last == true && now == false) {
+            vTaskDelay(pdMS_TO_TICKS(600)); // simulamos long press
+            if (gpio_get_level(SYNC_BUTTON_GPIO) == false) {
+                ESP_LOGI("SYNC_BTN", "Botón externo: SYNC");
+                handle_boot_long_press();   // ← AQUÍ EL SYNC REAL
+            }
+        }
+
+        last = now;
+        vTaskDelay(pdMS_TO_TICKS(20));
+    }
+}
+
+ 
+ 
+void handle_boot_long_press() {
     /* 初始化数据层 */
     /* Initialize data layer */
     if (!is_data_layer_initialized()) {
@@ -299,6 +326,17 @@ void key_logic_init(void) {
     // 启动按键扫描任务
     // Start key scan task
     xTaskCreate(key_scan_task, "key_scan_task", 2048, NULL, 2, NULL);
+    
+    
+    /*Incializar GPIO de Camera SYNC */
+    gpio_config_t io = {
+    .pin_bit_mask = (1ULL << SYNC_BUTTON_GPIO),
+    .mode = GPIO_MODE_INPUT,
+    .pull_up_en = GPIO_PULLUP_ENABLE,
+	};
+	gpio_config(&io);
+
+	xTaskCreate(sync_button_task, "sync_btn", 2048, NULL, 5, NULL);
 }
 
 /**

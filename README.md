@@ -1,3 +1,22 @@
+
+
+## Changes on this repo:
+
+-->PHOTO TIMELAPSE SUPPORT 
+-->Trigger sync from GPIO 
+-->StartStop Photo Timelapse from GPIO 
+
+The GPIO inputs are meant to put the ESP32 in a protective case so it can be placed as close as possible from the Osmo360 and avoid issues with BLE when used as camera for a MMS.
+
+If the Osmo360 is in video mode it will change into panoramic photo mode and start taking photos sequentially untill the button is pressed again. The resolution settings will be the ones already set, aswell as if front or dual lenses are uses. 
+
+Tested to work with Septentrio G5P3, but should work with others regardless as there is no specific implementation of any feature of this module.
+May be one day DJi will e more open minded and have stuff like PPS supoprt, unstitched front rear shots individually, non propietari video formats etc... a bit more like the Insta.
+
+----------------------------------------------------------------------------------------
+## ORIGINAL README
+
+
 # Osmo Action GPS Bluetooth Remote Controller (ESP32-C6-Example)
 
 ![](https://img.shields.io/badge/version-V1.0.0-red.svg) ![](https://img.shields.io/badge/platform-rtos-blue.svg) ![](https://img.shields.io/badge/license-MIT-purple.svg)

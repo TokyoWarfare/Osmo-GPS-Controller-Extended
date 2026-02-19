@@ -20,6 +20,9 @@
 #ifndef KEY_LOGIC_H
 #define KEY_LOGIC_H
 
+#define SYNC_BUTTON_GPIO 13
+
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
@@ -41,6 +44,8 @@ typedef enum {
 } key_event_t;
 
 void key_logic_init(void);
+
+void handle_boot_long_press(void);
 
 key_event_t key_logic_get_event(void);
 

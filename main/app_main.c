@@ -1,75 +1,131 @@
-/* SPDX-License-Identifier: MIT */
-/*
- * Copyright (C) 2025 SZ DJI Technology Co., Ltd.
- *  
- * All information contained herein is, and remains, the property of DJI.
- * The intellectual and technical concepts contained herein are proprietary
- * to DJI and may be covered by U.S. and foreign patents, patents in process,
- * and protected by trade secret or copyright law.  Dissemination of this
- * information, including but not limited to data and other proprietary
- * material(s) incorporated within the information, in any form, is strictly
- * prohibited without the express written consent of DJI.
- *
- * If you receive this source code without DJI’s authorization, you may not
- * further disseminate the information, and you must immediately remove the
- * source code and notify DJI of its removal. DJI reserves the right to pursue
- * legal actions against you for any loss(es) or damage(s) caused by your
- * failure to do so.
- */
+// ─────────────────────────────────────────────────────────────────────
+// main/app_main.c
+// ─────────────────────────────────────────────────────────────────────
 
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/uart.h"
+#include "esp_log.h"
 
 #include "connect_logic.h"
 #include "gps_logic.h"
 #include "key_logic.h"
 #include "light_logic.h"
-#include "test_gps.h"
+#include "timelapse_logic.h"
+#include "status_logic.h"
 
-/**
- * @brief Main application function, performs initialization and task loop
- * 应用主函数，执行初始化和任务循环
- *
- * This function initializes the RGB light, GPS module, Bluetooth connection, 
- * and key logic in sequence, and starts a loop task for periodic operations.
- * 
- * 在此函数中，依次初始化氛围灯、GPS模块、蓝牙模块和按键逻辑，
- * 并启动一个循环任务，周期性进行操作。
- */
-void app_main(void) {
+#define TAG "MAIN"
 
+
+// ─────────────────────────────────────────────
+// Consola serial simple
+// ─────────────────────────────────────────────
+static void console_task(void *arg)
+{
+    char cmd[32];
+    int pos = 0;
+
+    vTaskDelay(pdMS_TO_TICKS(3000));
+
+    printf("\n");
+    printf("╔══════════════════════════════════════╗\n");
+    printf("║       Osmo360 GPS Controller         ║\n");
+    printf("║  tstart - iniciar timelapse          ║\n");
+    printf("║  tstop  - parar timelapse            ║\n");
+    printf("║  status - estado cámara              ║\n");
+    printf("║  h      - ayuda                      ║\n");
+    printf("╚══════════════════════════════════════╝\n");
+    printf("> ");
+    fflush(stdout);
+
+    while (1) {
+        int c = getchar();
+        
+        if (c != EOF && c != -1) {
+            if (c == '\n' || c == '\r') {
+                cmd[pos] = '\0';
+                printf("\n");
+
+                if (pos > 0) {
+                    if (strcmp(cmd, "tstart") == 0) {
+                        timelapse_start();
+                    }
+                    else if (strcmp(cmd, "tstop") == 0) {
+                        timelapse_stop();
+                    }
+                    else if (strcmp(cmd, "status") == 0) {
+                        printf("Timelapse: %s\n", timelapse_is_running() ? "CORRIENDO" : "PARADO");
+                        printf("Camara mode: %d  status: %d\n",
+                               current_camera_mode, current_camera_status);
+                    }
+                    else if (c == 'h' || strcmp(cmd, "help") == 0) {
+                        printf("Comandos:\n");
+                        printf("  tstart  - iniciar timelapse foto 360\n");
+                        printf("  tstop   - parar timelapse\n");
+                        printf("  status  - estado actual\n");
+                    }
+                    else {
+                        printf("Desconocido: '%s'  (escribe 'h')\n", cmd);
+                    }
+                }
+
+                printf("> ");
+                fflush(stdout);
+                pos = 0;
+            }
+            else if ((c == 127 || c == 8) && pos > 0) {  // Backspace
+                pos--;
+                printf("\b \b");
+                fflush(stdout);
+            }
+            else if (pos < (int)(sizeof(cmd) - 1) && c >= 0x20) {
+                cmd[pos++] = (char)c;
+                printf("%c", c);
+                fflush(stdout);
+            }
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
+
+// ─────────────────────────────────────────────
+// app_main
+// ─────────────────────────────────────────────
+void app_main(void)
+{
     int res = 0;
 
-    /* Initialize RGB light */
-    /* 初始化氛围灯 */
+    /* Inicializar LED */
     res = init_light_logic();
-    if (res != 0) {
-        return;
-    }
+    if (res != 0) return;
 
-    /* Initialize GPS module */
-    /* 初始化 GPS 模块 */
+    /* Inicializar GPS */
     initSendGpsDataToCameraTask();
-
     vTaskDelay(pdMS_TO_TICKS(2000));
 
-    /* Initialize Bluetooth */
-    /* 初始化蓝牙 */
+    /* Inicializar BLE */
     res = connect_logic_ble_init();
-    if (res != 0) {
-        return;
-    }
+    if (res != 0) return;
 
-    /* Initialize key logic */
-    /* 初始化按键逻辑 */
+    /* Inicializar botón BOOT */
     key_logic_init();
 
-    /* 测试 GPS 推送 */
-    /* Test GPS Data Push */
-    // start_ble_packet_test(1);
+    /* Inicializar timelapse (aquí, dentro, se puede crear la tarea del botón físico) */
+    timelapse_logic_init();
 
-    // ===== Subsequent logic loop =====
-    // ===== 后续逻辑循环 =====
+    /* Arrancar consola serial */
+    xTaskCreate(console_task, "console", 4096, NULL, 0, NULL);
+
+    
+
+
+    /* Loop principal */
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(5000));
     }
+    
+
+    
+    
 }

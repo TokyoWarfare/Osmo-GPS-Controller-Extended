@@ -27,6 +27,7 @@
 #include "connect_logic.h"
 #include "command_logic.h"
 #include "dji_protocol_data_structures.h"
+#include "timelapse_logic.h"
 
 static const char *TAG = "LOGIC_STATUS";
 
@@ -168,6 +169,7 @@ void update_camera_state_handler(void *data) {
         current_camera_status = parsed_data->camera_status;
         ESP_LOGI(TAG, "Camera status updated to: %d", current_camera_status);
         state_changed = true;
+        timelapse_on_camera_status_changed();  // <-- solo esta línea nueva
     }
 
     // Check and update video resolution
